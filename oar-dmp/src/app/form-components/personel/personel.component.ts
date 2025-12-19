@@ -14,6 +14,7 @@ import { ResponsibleOrganizations } from 'src/app/types/responsible-organization
 import {Observable, switchMap, tap} from 'rxjs';
 
 import { SDSuggestion, SDSIndex, StaffDirectoryService } from 'oarng';
+import { UpdateNistContributorService } from 'src/app/shared/update-nist-contributor.service';
 
 import * as _ from 'lodash';
 
@@ -266,15 +267,19 @@ export class PersonelComponent implements OnInit {
   //for organizations search
   org_index: SDSIndex|null = null;      // the index we will download after the first minPromptLength (2) characters are typed
   orgSuggestions: SDSuggestion[] = []   // the current list of suggested completions matching what has been typed so far.
+
+  NISTPersonMetaChanged: boolean = false; // use to indicate that a dmp contributor from NIST had change in metadata since the last load of the record (such as change of OU or ORCID)
   
   constructor(
     private dropDownService: DropDownSelectService,
     private fb: UntypedFormBuilder,
-    private sdsvc: StaffDirectoryService
+    private sdsvc: StaffDirectoryService,
+    private updateContributor: UpdateNistContributorService
   ) {
     // console.log("Personel Component");
     this.getNistContactsFromAPI();    
     this.getNistOrganizations();
+    this.updateContributor.updateNISTContrib$.next(false);
   }
 
   personelForm = this.fb.group(
@@ -396,7 +401,37 @@ export class PersonelComponent implements OnInit {
   );
 
   ngOnInit(): void {
-    // console.log(" PersonelComponent ngOnInit");
+    console.log(" PersonelComponent ngOnInit");
+    this.dmpContributors.forEach(
+      // Iterate through cntributors, check if a contributor is from NIST
+      // If it is a NIST contributor call people service to check if any
+      // information about th person has been changed (change of OU, ORCID etc.)
+      // If there is a change update metadata and set NISTPersonMetaChanged to true to 
+      // indicate that this data needs to be automatically saved without any user intraction
+      (aContributor, index) => {
+        aContributor.firstName = "Ferdo-j";
+        console.log(index, aContributor);
+        this.NISTPersonMetaChanged = true;
+        
+        
+      }
+    );    
+
+    if (this.NISTPersonMetaChanged){
+      //  add changes to the form values if any changes were made to NIST contributors metadata
+      this.personelForm.value['contributors'] = this.dmpContributors;
+
+      // patch value to indicate that the form has changed
+      this.personelForm.patchValue({
+        contributors:this.personelForm.value['contributors']
+      })
+
+      // set updateNISTContrib to true to "send message" to dmp-form.component to execute autosave 
+      // TODO setup different allert to indicate that NIST person data has been updated VS just genreal alert that data has been saved
+      this.updateContributor.updateNISTContrib$.next(true);
+      this.NISTPersonMetaChanged = false;
+    }
+    
   }  
 
   //List of contributors that will be aded to the DMP

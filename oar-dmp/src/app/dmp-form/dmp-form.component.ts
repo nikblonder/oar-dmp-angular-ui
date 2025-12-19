@@ -13,6 +13,7 @@ import { DMP_Meta } from '../types/DMP.types';
 import { DmpService } from '../shared/dmp.service'
 import { SubmitDmpService } from '../shared/submit-dmp.service';//for acknowledging when form button has been 'pressed'
 import { FormChangedService } from '../shared/form-changed.service';
+import { UpdateNistContributorService } from '../shared/update-nist-contributor.service';
 import { UntypedFormControl } from '@angular/forms';
 
 
@@ -67,6 +68,11 @@ export class DmpFormComponent implements OnInit{
 
   dmpExportFormatSubscription!: Subscription | null;
   dmpExportFormatType: string = "";
+
+  // To notify if any of the dmp contributors have their data updated from people service
+  // this is for auto updating of NIST contributors data
+  formContributorsSubscription!: Subscription | null;
+  contributorsUpdated: boolean = false;
   // get access to methods in DataDescriptionComponent child.
 
   // this is for the purpose of reseting checkboxes.
@@ -109,6 +115,7 @@ export class DmpFormComponent implements OnInit{
   nameClass:string = "mnemonicNameNew";
 
   DMP_PDF?:DmpPdf;
+  autoUpdate:boolean = false;
 
   constructor(
     private fb: UntypedFormBuilder, 
@@ -116,7 +123,8 @@ export class DmpFormComponent implements OnInit{
     private route: ActivatedRoute,
     private router: Router,
     private form_buttons:SubmitDmpService,
-    private formChanged: FormChangedService
+    private formChanged: FormChangedService,
+    private updateContributor: UpdateNistContributorService
     
     ) {  
       // console.log("constructor");
@@ -166,7 +174,7 @@ export class DmpFormComponent implements OnInit{
   getFromDB:boolean = false;
 
   ngOnInit(): void {
-    // console.log("ngOnInit")
+    console.log("dmp-form.component ngOnInit")
 
     // const elementToObserve = document.getElementById("footer");
     
@@ -184,7 +192,7 @@ export class DmpFormComponent implements OnInit{
     //     resizeObserver.observe(<Element>elementToObserve);
     
     this.formButtonSubscribe();
-    this.formExportFormatSubscribe();
+    this.formExportFormatSubscribe();    
     this.id = this.route.snapshot.paramMap.get('id')
     this.route.data.subscribe(data  => {
       this.action = data["action"] ;
@@ -266,6 +274,24 @@ export class DmpFormComponent implements OnInit{
 
   }
 
+  //subscribe to contributor subjects
+  contributorsSubscribe(){
+    if (!this.formContributorsSubscription) {
+      //subscribe if not already subscribed
+      this.formContributorsSubscription = this.updateContributor.updateNISTContrib$.subscribe({
+        next: (hasChanged) => {
+          console.log("NIST coontributor metadata has changed: ",hasChanged);    
+          if (hasChanged){
+            this.autoUpdate = true; // set auto update to true to display alert for auto update message
+            this.saveDraft();
+            
+          }
+        }
+      });
+    }
+
+  }
+
   private changeElementClass (elID:string, add:string, remove:string){
     var saveButton = document.getElementById(elID);
     saveButton?.classList.remove(add);
@@ -338,7 +364,7 @@ export class DmpFormComponent implements OnInit{
         // set the flag that indicates that we have loaded the 
         // initial form state that came from back end database
         this.initialFormState = true;
-        // console.log("last one");
+        console.log("last one");
       }
 
     }
@@ -349,6 +375,7 @@ export class DmpFormComponent implements OnInit{
     // arr1 = [...arr1, ...arr2];
     // arr1 is now [0, 1, 2, 3, 4, 5]        
     this.dmp = { ...this.dmp, ...patch };
+    this.contributorsSubscribe();
   }
 
   enableSaveButton(){
@@ -367,26 +394,6 @@ export class DmpFormComponent implements OnInit{
     // of submitting a DMP record for publishing
     this.saveDraft();
 
-    
-    // if (!this.dmp){
-    //   alert("Cannot save DMP. Missing DMP in submit")
-    //   throw new Error("Missing DMP in submit");
-    // }
-    // if (this.name.value === '') {
-    //   alert("Cannot save DMP. Record name is empty.")
-    //   throw new Error("Record name is empty");
-    // }
-    // this.dmp_Service.createDMP(this.dmp, this.name.value).subscribe(
-    //   {
-    //     next: data => {
-    //         this.router.navigate(['success']);
-    //     },
-    //     error: error => {
-    //       console.log(error.message);
-    //       this.router.navigate(['error', { dmpError: this.buildErrorMessage(error) }]);
-    //     }
-    //   }
-    // );
   }
 
   saveDraft(){
@@ -426,7 +433,14 @@ export class DmpFormComponent implements OnInit{
               this.router.navigate(['edit', this.id]);
               this.disableSaveButton();
               this.formSaved = true;
-              alert("Successfuly saved draft of the data");
+              if (this.autoUpdate){
+                alert("We’ve detected changes to a NIST contributor's profile information since your last login. To ensure your records remain in sync with NIST People Service data, your DMP record has been automatically updated and saved:");
+                this.autoUpdate = false; // set it back to false to display regular alert after DMP save button was clicked
+              }
+              else {
+                alert("Successfuly saved DMP record");
+              }
+                
             },
             error: error => {
               console.log(error.message);
