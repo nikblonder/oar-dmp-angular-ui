@@ -5,7 +5,7 @@ import { Contributor } from '../../types/contributor.type';
 import { DropDownSelectService } from '../../shared/drop-down-select.service';
 
 import { Validators, UntypedFormBuilder } from '@angular/forms';
-import { defer, map, of, startWith, lastValueFrom, catchError } from 'rxjs';
+import { defer, map, of, startWith, lastValueFrom, catchError, from } from 'rxjs';
 import { DMP_Meta } from '../../types/DMP.types';
 // import { ORGANIZATIONS } from '../../types/mock-organizations';
 import { NistOrganization } from 'src/app/types/nist-organization';
@@ -169,6 +169,7 @@ export class PersonelComponent implements OnInit {
   org_displayedColumns: string[] = ORG_COL_SCHEMA.map((col) => col.key);
   org_columnsSchema: any = ORG_COL_SCHEMA;
   fltr_NIST_Org!: Observable<SDSuggestion[]>;
+  // contribModified$: Observable<boolean>;
 
 
   // ================================  
@@ -329,34 +330,34 @@ export class PersonelComponent implements OnInit {
     // resources array to populate the table of resources in the user interface
     this.contribOrcidWarn = '';
     personel.contributors.forEach(
-      (aContributor, index) => {
-        if (aContributor.orcid.length === 0){
+      (dmpContributor, index) => {
+        if (dmpContributor.orcid.length === 0){
           this.contribOrcidWarn = PersonelComponent.ORCID_WARNING;
         }
         this.dmpContributors.push({
           id:           index, 
           isEdit:       false, 
       
-          firstName:        aContributor.firstName,
-          lastName:         aContributor.lastName,
-          orcid:            aContributor.orcid,
-          emailAddress:     aContributor.emailAddress,
+          firstName:        dmpContributor.firstName,
+          lastName:         dmpContributor.lastName,
+          orcid:            dmpContributor.orcid,
+          emailAddress:     dmpContributor.emailAddress,
 
-          groupOrgID:       aContributor.groupOrgID,
-          groupNumber:      aContributor.groupNumber,
-          groupName:        aContributor.groupName,
+          groupOrgID:       dmpContributor.groupOrgID,
+          groupNumber:      dmpContributor.groupNumber,
+          groupName:        dmpContributor.groupName,
 
-          divisionOrgID:    aContributor.divisionOrgID,
-          divisionNumber:   aContributor.divisionNumber,
-          divisionName:     aContributor.divisionName,
+          divisionOrgID:    dmpContributor.divisionOrgID,
+          divisionNumber:   dmpContributor.divisionNumber,
+          divisionName:     dmpContributor.divisionName,
 
-          ouOrgID:          aContributor.ouOrgID,
-          ouNumber:         aContributor.ouNumber,
-          ouName:           aContributor.ouName,
+          ouOrgID:          dmpContributor.ouOrgID,
+          ouNumber:         dmpContributor.ouNumber,
+          ouName:           dmpContributor.ouName,
        
-          primary_contact:  aContributor.primary_contact,
-          role:             aContributor.role,
-          institution:      aContributor.institution
+          primary_contact:  dmpContributor.primary_contact,
+          role:             dmpContributor.role,
+          institution:      dmpContributor.institution
           
         });
         this.disableClear=false;
@@ -402,20 +403,93 @@ export class PersonelComponent implements OnInit {
 
   ngOnInit(): void {
     console.log(" PersonelComponent ngOnInit");
-    this.dmpContributors.forEach(
+    // 1. use this.dmpContributors as your source array
+    // 2. Create the observable
+    // 'from' emits each array element one by one
+    const dmpContribObs = from(this.dmpContributors);
+    // 3. Use .pipe() to iterate/transform the data
+    const processedObservable = dmpContribObs.pipe(      
       // Iterate through cntributors, check if a contributor is from NIST
       // If it is a NIST contributor call people service to check if any
       // information about th person has been changed (change of OU, ORCID etc.)
       // If there is a change update metadata and set NISTPersonMetaChanged to true to 
       // indicate that this data needs to be automatically saved without any user intraction
-      (aContributor, index) => {
-        aContributor.firstName = "Ferdo-j";
-        console.log(index, aContributor);
-        this.NISTPersonMetaChanged = true;
-        
-        
+      switchMap(
+        (dmpContributor:any) =>{
+          const usrLastName = dmpContributor.lastName;
+          this.sdsvc.getPeopleIndexFor(usrLastName).subscribe({
+            next: (idx:any) =>{
+              if (idx != null) {
+                // qury people service on last name
+                // NOTE: currently we don't have a better way to directly get correct 
+                // record from people service, so we need to iterrate over suggestions
+                // and do a match on email address.
+                // It would be good for the future to add NIST ID to dmp contacts metadata
+                // and use that to directly search people service.
+                this.suggestions = (idx as SDSIndex).getSuggestions(usrLastName);
+                // iterrate over the suggestions that come from the people service
+                this.suggestions.forEach(
+                  (aPerson)=>{
+                    return aPerson.getRecord().subscribe({
+                      next:(psRec:any) =>{
+                        // console.log(psRec);
+                        // make comparison on email address
+                        if ((dmpContributor.emailAddress === psRec.emailAddress)){
+                          if (this.NISTContributoHasChanged(dmpContributor, psRec)){
+                            console.log("Need to update contact");
+
+                            // update contract
+                            dmpContributor.divisionName = psRec.divisionName;
+                            dmpContributor.divisionNumber = psRec.divisionNumber;
+                            dmpContributor.divisionOrgID = psRec.divisionOrgID;       
+                            dmpContributor.firstName = psRec.firstName; 
+                            dmpContributor.groupName = psRec.groupName; 
+                            dmpContributor.groupNumber = psRec.groupNumber; 
+                            dmpContributor.groupOrgID = psRec.groupOrgID; 
+                            dmpContributor.lastName = psRec.lastName; 
+                            dmpContributor.orcid = psRec.orcid; 
+                            dmpContributor.ouName = psRec.ouName;
+                            dmpContributor.ouNumber = psRec.ouNumber;
+                            dmpContributor.ouOrgID = psRec.ouOrgID;
+
+                            this.NISTPersonMetaChanged = true;
+
+                          }
+                          else{
+                            console.log("Don't need to update contact");
+                          }
+                        }
+                        
+                      },
+                      error:(err:any)=>{
+                        console.log(err);
+                      }
+                    });
+                  }
+                );
+              }
+            },
+            error: (err: any) => {
+              console.log('Failed to pull people index for "'+usrLastName+'"'+err)
+              
+            },
+            complete: () => console.log('Observable emitted the complete notification')
+          })
+        }
+      ),
+      map(pipedValue => {
+
+        }
+
+      )
+    );
+    // 4. Subscribe to see the results
+    processedObservable.subscribe({
+      next: (result) => console.log(result),
+      complete: () => {
+        console.log('Iteration complete!')
       }
-    );    
+    });
 
     if (this.NISTPersonMetaChanged){
       //  add changes to the form values if any changes were made to NIST contributors metadata
@@ -427,12 +501,38 @@ export class PersonelComponent implements OnInit {
       })
 
       // set updateNISTContrib to true to "send message" to dmp-form.component to execute autosave 
-      // TODO setup different allert to indicate that NIST person data has been updated VS just genreal alert that data has been saved
       this.updateContributor.updateNISTContrib$.next(true);
       this.NISTPersonMetaChanged = false;
     }
+    console.log("##");
     
-  }  
+  }
+
+  /**
+   * check if DMP record metadata for a given NIST contributor is the same as
+   * the current metadata returned from the people service.
+   * return true if the two are identical 
+   */
+  private NISTContributoHasChanged (dmpContrib:any, current:any):boolean{
+    if (
+      (dmpContrib.divisionName !== current.divisionName) ||
+      (dmpContrib.divisionNumber !== current.divisionNumber) ||
+      (dmpContrib.divisionOrgID !== current.divisionOrgID) ||      
+      (dmpContrib.firstName !== current.firstName) ||
+      (dmpContrib.groupName !== current.groupName) ||
+      (dmpContrib.groupNumber !== current.groupNumber) ||
+      (dmpContrib.groupOrgID !== current.groupOrgID) ||
+      (dmpContrib.lastName !== current.lastName) ||
+      (dmpContrib.orcid !== current.orcid) ||
+      (dmpContrib.ouName !== current.ouName) ||
+      (dmpContrib.ouNumber !== current.ouNumber) ||
+      (dmpContrib.ouOrgID !== current.ouOrgID)
+
+    ){
+      return true;
+    }
+    return false;
+  }
 
   //List of contributors that will be aded to the DMP
   contributors: Contributor[]=[];

@@ -364,7 +364,7 @@ export class DmpFormComponent implements OnInit{
         // set the flag that indicates that we have loaded the 
         // initial form state that came from back end database
         this.initialFormState = true;
-        console.log("last one");
+        // console.log("last one");
       }
 
     }
