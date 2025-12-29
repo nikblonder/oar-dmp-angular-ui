@@ -5,13 +5,13 @@ import { Contributor } from '../../types/contributor.type';
 import { DropDownSelectService } from '../../shared/drop-down-select.service';
 
 import { Validators, UntypedFormBuilder } from '@angular/forms';
-import { defer, map, of, startWith, lastValueFrom, catchError, from } from 'rxjs';
+import { defer, map, of, startWith, lastValueFrom, catchError, from, merge, delay, mergeMap, concatMap } from 'rxjs';
 import { DMP_Meta } from '../../types/DMP.types';
 // import { ORGANIZATIONS } from '../../types/mock-organizations';
 import { NistOrganization } from 'src/app/types/nist-organization';
 import { ResponsibleOrganizations } from 'src/app/types/responsible-organizations.type';
 
-import {Observable, switchMap, tap} from 'rxjs';
+import {Observable, switchMap} from 'rxjs';
 
 import { SDSuggestion, SDSIndex, StaffDirectoryService } from 'oarng';
 import { UpdateNistContributorService } from 'src/app/shared/update-nist-contributor.service';
@@ -270,6 +270,12 @@ export class PersonelComponent implements OnInit {
   orgSuggestions: SDSuggestion[] = []   // the current list of suggested completions matching what has been typed so far.
 
   NISTPersonMetaChanged: boolean = false; // use to indicate that a dmp contributor from NIST had change in metadata since the last load of the record (such as change of OU or ORCID)
+  userIds = [101, 102, 103];
+
+  // Mock function representing an API call
+  fetchUserData = (id: number) => {
+    return of({ id, name: `User_${id}` }).pipe(delay(1000)); 
+  };
   
   constructor(
     private dropDownService: DropDownSelectService,
@@ -408,13 +414,13 @@ export class PersonelComponent implements OnInit {
     // 'from' emits each array element one by one
     const dmpContribObs = from(this.dmpContributors);
     // 3. Use .pipe() to iterate/transform the data
-    const processedObservable = dmpContribObs.pipe(      
+    const processedObservable = dmpContribObs.pipe(
       // Iterate through cntributors, check if a contributor is from NIST
       // If it is a NIST contributor call people service to check if any
       // information about th person has been changed (change of OU, ORCID etc.)
       // If there is a change update metadata and set NISTPersonMetaChanged to true to 
       // indicate that this data needs to be automatically saved without any user intraction
-      switchMap(
+      map(
         (dmpContributor:any) =>{
           const usrLastName = dmpContributor.lastName;
           this.sdsvc.getPeopleIndexFor(usrLastName).subscribe({
@@ -430,7 +436,7 @@ export class PersonelComponent implements OnInit {
                 // iterrate over the suggestions that come from the people service
                 this.suggestions.forEach(
                   (aPerson)=>{
-                    return aPerson.getRecord().subscribe({
+                    aPerson.getRecord().subscribe({
                       next:(psRec:any) =>{
                         // console.log(psRec);
                         // make comparison on email address
@@ -458,6 +464,19 @@ export class PersonelComponent implements OnInit {
                           else{
                             console.log("Don't need to update contact");
                           }
+                          if (this.NISTPersonMetaChanged){
+                            //  add changes to the form values if any changes were made to NIST contributors metadata
+                            this.personelForm.value['contributors'] = this.dmpContributors;
+
+                            // patch value to indicate that the form has changed
+                            this.personelForm.patchValue({
+                              contributors:this.personelForm.value['contributors']
+                            })
+
+                            // set updateNISTContrib to true to "send message" to dmp-form.component to execute autosave 
+                            this.updateContributor.updateNISTContrib$.next(true);
+                            this.NISTPersonMetaChanged = false;
+                          }
                         }
                         
                       },
@@ -473,37 +492,24 @@ export class PersonelComponent implements OnInit {
               console.log('Failed to pull people index for "'+usrLastName+'"'+err)
               
             },
-            complete: () => console.log('Observable emitted the complete notification')
+            complete: () => {
+              console.log('Observable emitted the complete notification: NISTPersonMetaChanged', this.NISTPersonMetaChanged);
+            }
           })
+          // return this.NISTPersonMetaChanged;
         }
-      ),
-      map(pipedValue => {
-
-        }
-
       )
     );
+
     // 4. Subscribe to see the results
     processedObservable.subscribe({
-      next: (result) => console.log(result),
+      next: () => {},
       complete: () => {
         console.log('Iteration complete!')
       }
     });
 
-    if (this.NISTPersonMetaChanged){
-      //  add changes to the form values if any changes were made to NIST contributors metadata
-      this.personelForm.value['contributors'] = this.dmpContributors;
-
-      // patch value to indicate that the form has changed
-      this.personelForm.patchValue({
-        contributors:this.personelForm.value['contributors']
-      })
-
-      // set updateNISTContrib to true to "send message" to dmp-form.component to execute autosave 
-      this.updateContributor.updateNISTContrib$.next(true);
-      this.NISTPersonMetaChanged = false;
-    }
+    
     console.log("##");
     
   }

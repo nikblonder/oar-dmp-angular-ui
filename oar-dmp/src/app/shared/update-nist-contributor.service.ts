@@ -6,7 +6,7 @@ import { Subject } from 'rxjs';
   providedIn: 'root'
 })
 export class UpdateNistContributorService {
-
+ 
   constructor() { 
     this.updateContributors = false;
   }
