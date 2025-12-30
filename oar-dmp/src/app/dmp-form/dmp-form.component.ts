@@ -439,7 +439,7 @@ export class DmpFormComponent implements OnInit{
                 this.contributorsUpdate.numUpdates += 1;
                 if (this.contributorsUpdate.numUpdates === this.contribTotalUpdates){
                   // When we are auto-saving the final contributor display the alert to inform the user about auto update
-                  alert("We have detected changes to a NIST contributor's profile information since your last login. To ensure your records remain in sync with NIST People Service data, your DMP record has been automatically updated and saved:");
+                  alert("We have detected changes to profile information (e.g. ORCID, OU or Group) for one or more of NIST contributors associated with this DMP record. To ensure your records remain in sync with NIST People Service database, your DMP record has been automatically updated and saved.");
                   // reset contributorsUpdate to initial state so that next time DMP gets sved we can display regular alert message.
                   this.contributorsUpdate = {numUpdates:0, isUpdated:false};
                   this.contribTotalUpdates = 0;
