@@ -4,8 +4,8 @@ import { ROLES } from '../../types/contributor-roles';
 import { Contributor } from '../../types/contributor.type';
 import { DropDownSelectService } from '../../shared/drop-down-select.service';
 
-import { Validators, UntypedFormBuilder } from '@angular/forms';
-import { defer, map, of, startWith, lastValueFrom, catchError, from, merge, delay, mergeMap, concatMap } from 'rxjs';
+import { UntypedFormBuilder } from '@angular/forms';
+import { defer, map, of, startWith, catchError, from, } from 'rxjs';
 import { DMP_Meta } from '../../types/DMP.types';
 // import { ORGANIZATIONS } from '../../types/mock-organizations';
 import { NistOrganization } from 'src/app/types/nist-organization';
@@ -270,6 +270,8 @@ export class PersonelComponent implements OnInit {
   orgSuggestions: SDSuggestion[] = []   // the current list of suggested completions matching what has been typed so far.
 
   NISTPersonMetaChanged: boolean = false; // use to indicate that a dmp contributor from NIST had change in metadata since the last load of the record (such as change of OU or ORCID)
+  PrimContribOUChanged:boolean = false // use to indicate that OU of a primary contact associated with the DMP record has changed
+  PrimContribNewOU:number = 0;
 
   contribsUpdated: number = 0;  // used to count how many contributors had metadata updated when reading an exsisting DMP record
    
@@ -437,7 +439,17 @@ export class PersonelComponent implements OnInit {
                         // console.log(psRec);
                         // make comparison on email address
                         if ((dmpContributor.emailAddress === psRec.emailAddress)){
-                          if (this.NISTContributoHasChanged(dmpContributor, psRec)){                           
+                          if (this.NISTContributorHasChanged(dmpContributor, psRec)){  
+                            console.log("contrib changed");
+
+                            this.NISTPersonMetaChanged = true;
+                            this.contribsUpdated += 1;
+                             
+                            if (dmpContributor.groupOrgID !== psRec.groupOrgID && dmpContributor.primary_contact === "Yes"){
+                              // If the contact whose group has been changed is a primary contact then update list of OUs responsible for this DMP record
+                              this.PrimContribOUChanged = true;
+                              this.PrimContribNewOU = psRec.groupOrgID;
+                            }
 
                             // update contract
                             dmpContributor.divisionName = psRec.divisionName;
@@ -445,7 +457,7 @@ export class PersonelComponent implements OnInit {
                             dmpContributor.divisionOrgID = psRec.divisionOrgID;       
                             dmpContributor.firstName = psRec.firstName; 
                             dmpContributor.groupName = psRec.groupName; 
-                            dmpContributor.groupNumber = psRec.groupNumber; 
+                            dmpContributor.groupNumber = psRec.groupNumber;
                             dmpContributor.groupOrgID = psRec.groupOrgID; 
                             dmpContributor.lastName = psRec.lastName; 
                             dmpContributor.orcid = psRec.orcid; 
@@ -453,29 +465,55 @@ export class PersonelComponent implements OnInit {
                             dmpContributor.ouNumber = psRec.ouNumber;
                             dmpContributor.ouOrgID = psRec.ouOrgID;
 
-                            this.NISTPersonMetaChanged = true;
-                            this.contribsUpdated += 1;
-
                           }
-                          if (this.NISTPersonMetaChanged){
-                            //  add changes to the form values if any changes were made to NIST contributors metadata
-                            this.personelForm.value['contributors'] = this.dmpContributors;
-
-                            // patch value to indicate that the form has changed
-                            this.personelForm.patchValue({
-                              contributors:this.personelForm.value['contributors']
-                            })
-
-                            // set updateNISTContrib to true to "send message" to dmp-form.component to execute autosave 
-                            this.updateContributor.updateNISTContrib$.next({numUpdates:this.contribsUpdated, isUpdated:this.NISTPersonMetaChanged});
-                            this.NISTPersonMetaChanged = false;
-                          }
+                          
                         }
                         
                       },
                       error:(err:any)=>{
                         console.log(err);
+                      },
+                      complete: () => {
+                        console.log('A ... NISTPersonMetaChanged: ', this.NISTPersonMetaChanged);
+                        console.log('B ... PrimContribOUChanged: ', this.PrimContribOUChanged);
+                        if (this.NISTPersonMetaChanged){
+                          //  add changes to the form values if any changes were made to NIST contributors metadata
+                          this.personelForm.value['contributors'] = this.dmpContributors;
+
+                          // patch value to indicate that the form has changed
+                          this.personelForm.patchValue({
+                            contributors:this.personelForm.value['contributors']
+                          })
+
+                          // set updateNISTContrib to true to "send message" to dmp-form.component to execute autosave 
+                          this.updateContributor.updateNISTContrib$.next({numUpdates:this.contribsUpdated, isUpdated:this.NISTPersonMetaChanged});                          
+                        }
+
+                        if (this.PrimContribOUChanged){
+                          // TODO: add new Organization(s) responsible for this DMP
+                          this.sdsvc.getParentOrgs(this.PrimContribNewOU, true).pipe(                
+                            map((recs:any) =>{              
+                              this.setResponsibleOrgs(recs);
+                              this.org_addRow();
+                              // TODO: autosave org changes
+                            })                            
+                          ).subscribe({
+                            error: (err: any) => {
+                              console.log('Failed to pull orgs for index "'+this.PrimContribNewOU+'"'+err)
+                              
+                            },
+                            complete: () => {
+                              // console.log('Observable emitted the complete notification: NISTPersonMetaChanged', this.NISTPersonMetaChanged);
+                              console.log;
+                            }
+                          });
+                        }
+
+                        // reset flags
+                        this.NISTPersonMetaChanged = false;
+                        this.PrimContribOUChanged = false;
                       }
+                      
                     });
                   }
                 );
@@ -513,7 +551,7 @@ export class PersonelComponent implements OnInit {
    * the current metadata returned from the people service.
    * return true if the two are identical 
    */
-  private NISTContributoHasChanged (dmpContrib:any, current:any):boolean{
+  private NISTContributorHasChanged (dmpContrib:any, current:any):boolean{
     if (
       (dmpContrib.divisionName !== current.divisionName) ||
       (dmpContrib.divisionNumber !== current.divisionNumber) ||
@@ -1269,7 +1307,7 @@ export class PersonelComponent implements OnInit {
            * If it's a division then we set group to null
            * If it's a lab then division and group are null
            */
-          // Make async call to get parent organizations of the corganization selected by the user
+          // Make async call to get parent organizations of the organization selected by the user
           return this.sdsvc.getParentOrgs(usrInput.id, true).pipe(                
             map((recs:any) =>{              
               this.setResponsibleOrgs(recs);
