@@ -270,13 +270,9 @@ export class PersonelComponent implements OnInit {
   orgSuggestions: SDSuggestion[] = []   // the current list of suggested completions matching what has been typed so far.
 
   NISTPersonMetaChanged: boolean = false; // use to indicate that a dmp contributor from NIST had change in metadata since the last load of the record (such as change of OU or ORCID)
-  userIds = [101, 102, 103];
 
-  // Mock function representing an API call
-  fetchUserData = (id: number) => {
-    return of({ id, name: `User_${id}` }).pipe(delay(1000)); 
-  };
-  
+  contribsUpdated: number = 0;  // used to count how many contributors had metadata updated when reading an exsisting DMP record
+   
   constructor(
     private dropDownService: DropDownSelectService,
     private fb: UntypedFormBuilder,
@@ -286,7 +282,7 @@ export class PersonelComponent implements OnInit {
     // console.log("Personel Component");
     this.getNistContactsFromAPI();    
     this.getNistOrganizations();
-    this.updateContributor.updateNISTContrib$.next(false);
+    this.updateContributor.updateNISTContrib$.next({numUpdates:this.contribsUpdated, isUpdated:false});
   }
 
   personelForm = this.fb.group(
@@ -408,7 +404,7 @@ export class PersonelComponent implements OnInit {
   );
 
   ngOnInit(): void {
-    console.log(" PersonelComponent ngOnInit");
+    // console.log(" PersonelComponent ngOnInit");
     // 1. use this.dmpContributors as your source array
     // 2. Create the observable
     // 'from' emits each array element one by one
@@ -441,8 +437,7 @@ export class PersonelComponent implements OnInit {
                         // console.log(psRec);
                         // make comparison on email address
                         if ((dmpContributor.emailAddress === psRec.emailAddress)){
-                          if (this.NISTContributoHasChanged(dmpContributor, psRec)){
-                            console.log("Need to update contact");
+                          if (this.NISTContributoHasChanged(dmpContributor, psRec)){                           
 
                             // update contract
                             dmpContributor.divisionName = psRec.divisionName;
@@ -459,10 +454,8 @@ export class PersonelComponent implements OnInit {
                             dmpContributor.ouOrgID = psRec.ouOrgID;
 
                             this.NISTPersonMetaChanged = true;
+                            this.contribsUpdated += 1;
 
-                          }
-                          else{
-                            console.log("Don't need to update contact");
                           }
                           if (this.NISTPersonMetaChanged){
                             //  add changes to the form values if any changes were made to NIST contributors metadata
@@ -474,7 +467,7 @@ export class PersonelComponent implements OnInit {
                             })
 
                             // set updateNISTContrib to true to "send message" to dmp-form.component to execute autosave 
-                            this.updateContributor.updateNISTContrib$.next(true);
+                            this.updateContributor.updateNISTContrib$.next({numUpdates:this.contribsUpdated, isUpdated:this.NISTPersonMetaChanged});
                             this.NISTPersonMetaChanged = false;
                           }
                         }
@@ -493,24 +486,25 @@ export class PersonelComponent implements OnInit {
               
             },
             complete: () => {
-              console.log('Observable emitted the complete notification: NISTPersonMetaChanged', this.NISTPersonMetaChanged);
+              // console.log('Observable emitted the complete notification: NISTPersonMetaChanged', this.NISTPersonMetaChanged);
             }
           })
-          // return this.NISTPersonMetaChanged;
         }
       )
     );
 
     // 4. Subscribe to see the results
     processedObservable.subscribe({
-      next: () => {},
+      next: () => {
+        // console.log("Next contributor")
+      },
+      error:(err:any)=>{
+        console.log(err);
+      },
       complete: () => {
-        console.log('Iteration complete!')
+        // console.log('Contributor Iteration complete!')
       }
     });
-
-    
-    console.log("##");
     
   }
 

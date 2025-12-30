@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, afterNextRender  } from '@angular/core';
 import { ObservedValueOf, Subscription } from "rxjs";
-import { UntypedFormBuilder, Validators } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { BasicInfoComponent } from '../form-components/basic-info/basic-info.component';
 import { PersonelComponent } from '../form-components/personel/personel.component';
 import { KeywordsComponent } from '../form-components/keywords/keywords.component';
@@ -15,6 +15,7 @@ import { SubmitDmpService } from '../shared/submit-dmp.service';//for acknowledg
 import { FormChangedService } from '../shared/form-changed.service';
 import { UpdateNistContributorService } from '../shared/update-nist-contributor.service';
 import { UntypedFormControl } from '@angular/forms';
+import { UpdateIndicator } from '../types/update-indicator.type';
 
 
 // for Communicating with backend services using HTTP
@@ -27,7 +28,7 @@ import { Injectable } from '@angular/core';
 // import { Observable, throwError } from 'rxjs';
 // import { catchError, retry } from 'rxjs/operators';
 
-import { Router, ActivatedRoute, ParamMap } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { DmpPdf } from './dmp-pdf';
 
 
@@ -72,7 +73,7 @@ export class DmpFormComponent implements OnInit{
   // To notify if any of the dmp contributors have their data updated from people service
   // this is for auto updating of NIST contributors data
   formContributorsSubscription!: Subscription | null;
-  contributorsUpdated: boolean = false;
+
   // get access to methods in DataDescriptionComponent child.
 
   // this is for the purpose of reseting checkboxes.
@@ -115,7 +116,8 @@ export class DmpFormComponent implements OnInit{
   nameClass:string = "mnemonicNameNew";
 
   DMP_PDF?:DmpPdf;
-  autoUpdate:boolean = false;
+  contributorsUpdate: UpdateIndicator = {numUpdates:0, isUpdated:false};
+  contribTotalUpdates:number = 0;
 
   constructor(
     private fb: UntypedFormBuilder, 
@@ -174,7 +176,7 @@ export class DmpFormComponent implements OnInit{
   getFromDB:boolean = false;
 
   ngOnInit(): void {
-    console.log("dmp-form.component ngOnInit")
+    // console.log("dmp-form.component ngOnInit")
 
     // const elementToObserve = document.getElementById("footer");
     
@@ -279,12 +281,13 @@ export class DmpFormComponent implements OnInit{
     if (!this.formContributorsSubscription) {
       //subscribe if not already subscribed
       this.formContributorsSubscription = this.updateContributor.updateNISTContrib$.subscribe({
-        next: (hasChanged) => {
-          console.log("NIST coontributor metadata has changed: ",hasChanged);    
-          if (hasChanged){
-            this.autoUpdate = true; // set auto update to true to display alert for auto update message
-            this.saveDraft();
-            
+        next: (hasChanged:UpdateIndicator) => {
+          if (hasChanged.isUpdated){
+            // change this flag to indicate that we need to display alert about auto update of NIST contributors metadata from people service
+            this.contributorsUpdate.isUpdated = hasChanged.isUpdated;
+            // update this counter to indicate how many contributors have been updated
+            this.contribTotalUpdates = hasChanged.numUpdates;
+            this.saveDraft();            
           }
         }
       });
@@ -433,11 +436,19 @@ export class DmpFormComponent implements OnInit{
               this.router.navigate(['edit', this.id]);
               this.disableSaveButton();
               this.formSaved = true;
-              if (this.autoUpdate){
-                alert("We’ve detected changes to a NIST contributor's profile information since your last login. To ensure your records remain in sync with NIST People Service data, your DMP record has been automatically updated and saved:");
-                this.autoUpdate = false; // set it back to false to display regular alert after DMP save button was clicked
+              if (this.contributorsUpdate.isUpdated){                
+                // Automatically save updates to NIST contributors metadata
+                this.contributorsUpdate.numUpdates += 1;
+                if (this.contributorsUpdate.numUpdates === this.contribTotalUpdates){
+                  // When we are auto-saving the final contributor display the alert to inform the user about auto update
+                  alert("We have detected changes to a NIST contributor's profile information since your last login. To ensure your records remain in sync with NIST People Service data, your DMP record has been automatically updated and saved:");
+                  // reset contributorsUpdate to initial state so that next time DMP gets sved we can display regular alert message.
+                  this.contributorsUpdate = {numUpdates:0, isUpdated:false};
+                  this.contribTotalUpdates = 0;
+                }
               }
-              else {
+              else {              
+                // Default save alert
                 alert("Successfuly saved DMP record");
               }
                 

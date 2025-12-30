@@ -101,9 +101,8 @@ export class DmpService {
 
   fetchDMP(action:string, recordID:string|null) {   
     //Action can be new or edit and it indicates if we need to create a new DMP - i.e. a blank DMP
-    // or if we are editing an existing one and which needs to be pulled from API
-    // console.log("fetchDMP");
-    console.log(this.configService.getConfig<DMPConfiguration>().PDRDMP);
+    // or if we are editing an existing one and which needs to be pulled from API    
+    // console.log(this.configService.getConfig<DMPConfiguration>().PDRDMP);
     if (action === 'new'){
       return of(this.NewDmpRecord);
     }
