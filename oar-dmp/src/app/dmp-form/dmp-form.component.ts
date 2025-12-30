@@ -53,8 +53,6 @@ interface DMPForm {
 // be empty until the first child component has emitted its formReady event.
 
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import autoTable from 'jspdf-autotable'
 import { saveAs } from 'file-saver';
 
 @Component({
@@ -531,41 +529,6 @@ export class DmpFormComponent implements OnInit{
       errorMessage += error.statusText + " ";
     }
     return errorMessage;
-
-  }
-
-  screenshotPDF(){
-    //capture full screenshot of the DMP form
-
-    let DATA: any = document.getElementById('dmp_panel');
-    let PDF = new jsPDF('p', 'mm', 'a4');
-    html2canvas(DATA).then((canvas) => {
-      var imgData = canvas.toDataURL('image/png');
-
-      /*
-      Here are the numbers (paper width and height) that I found to work. 
-      It still creates a little overlap part between the pages, but good enough for me.
-      if you can find an official number from jsPDF, use them.
-      */
-      var imgWidth = 210; 
-      var pageHeight = 295;  
-      var imgHeight = canvas.height * imgWidth / canvas.width;
-      var heightLeft = imgHeight;
-
-      var doc = new jsPDF('p', 'mm');
-      var position = 0;
-
-      doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        doc.addPage();
-        doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-      doc.save('angular-demo.pdf');
-    });
 
   }
 

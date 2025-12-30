@@ -350,8 +350,7 @@ export class StorageNeedsComponent {
     this.techRsrcErr = '';
   }
 
-  setDataSizeDescription(e: string): void {
-    console.log("setDataSizeDescription");
+  setDataSizeDescription(e: string): void {    
     this.technicalRequirementsForm.patchValue(
       {
         setDataSizeDescription: e
