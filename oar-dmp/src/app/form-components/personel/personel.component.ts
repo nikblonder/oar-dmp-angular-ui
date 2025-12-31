@@ -274,17 +274,20 @@ export class PersonelComponent implements OnInit {
   PrimContribNewOU:number = 0;
 
   contribsUpdated: number = 0;  // used to count how many contributors had metadata updated when reading an exsisting DMP record
+  OUsUpdated: number = 0;  // used to count how many primary contributors had changed OUs when reading an exsisting DMP record
    
   constructor(
     private dropDownService: DropDownSelectService,
     private fb: UntypedFormBuilder,
     private sdsvc: StaffDirectoryService,
-    private updateContributor: UpdateNistContributorService
+    private updateContributor: UpdateNistContributorService,
+    private updateOU: UpdateNistContributorService
   ) {
     // console.log("Personel Component");
     this.getNistContactsFromAPI();    
     this.getNistOrganizations();
     this.updateContributor.updateNISTContrib$.next({numUpdates:this.contribsUpdated, isUpdated:false});
+    this.updateOU.updateNISTContrib$.next({numUpdates:this.OUsUpdated, isUpdated:false});
   }
 
   personelForm = this.fb.group(
@@ -431,96 +434,108 @@ export class PersonelComponent implements OnInit {
                 // It would be good for the future to add NIST ID to dmp contacts metadata
                 // and use that to directly search people service.
                 this.suggestions = (idx as SDSIndex).getSuggestions(usrLastName);
-                // iterrate over the suggestions that come from the people service
-                this.suggestions.forEach(
-                  (aPerson)=>{
-                    aPerson.getRecord().subscribe({
-                      next:(psRec:any) =>{
-                        // console.log(psRec);
-                        // make comparison on email address
-                        if ((dmpContributor.emailAddress === psRec.emailAddress)){
-                          if (this.NISTContributorHasChanged(dmpContributor, psRec)){  
-                            console.log("contrib changed");
 
-                            this.NISTPersonMetaChanged = true;
-                            this.contribsUpdated += 1;
-                             
-                            if (dmpContributor.groupOrgID !== psRec.groupOrgID && dmpContributor.primary_contact === "Yes"){
-                              // If the contact whose group has been changed is a primary contact then update list of OUs responsible for this DMP record
-                              this.PrimContribOUChanged = true;
-                              this.PrimContribNewOU = psRec.groupOrgID;
+                if (this.suggestions.length > 0){
+                  // iterrate over the suggestions that come from the people service
+                  this.suggestions.forEach(
+                    (aPerson)=>{
+                      aPerson.getRecord().subscribe({
+                        next:(psRec:any) =>{
+                          // console.log(psRec);
+                          // make comparison on email address
+                          if ((dmpContributor.emailAddress === psRec.emailAddress)){
+                            if (this.NISTContributorHasChanged(dmpContributor, psRec)){  
+                              // console.log("contrib changed");
+
+                              this.NISTPersonMetaChanged = true;
+                              this.contribsUpdated += 1;
+                              
+                              if (dmpContributor.groupOrgID !== psRec.groupOrgID && dmpContributor.primary_contact === "Yes"){
+                                // If the contact whose group has been changed is a primary contact then update list of OUs responsible for this DMP record
+                                this.PrimContribOUChanged = true;
+                                this.OUsUpdated +=1;
+
+                                // Get the name of the new OU for th primary contact so we can search it later on and thet parent Orgs for the OU in question
+                                this.PrimContribNewOU = psRec.groupOrgID;
+                              }
+
+                              // update contact
+                              dmpContributor.divisionName = psRec.divisionName;
+                              dmpContributor.divisionNumber = psRec.divisionNumber;
+                              dmpContributor.divisionOrgID = psRec.divisionOrgID;       
+                              dmpContributor.firstName = psRec.firstName; 
+                              dmpContributor.groupName = psRec.groupName; 
+                              dmpContributor.groupNumber = psRec.groupNumber;
+                              dmpContributor.groupOrgID = psRec.groupOrgID; 
+                              dmpContributor.lastName = psRec.lastName; 
+                              dmpContributor.orcid = psRec.orcid; 
+                              dmpContributor.ouName = psRec.ouName;
+                              dmpContributor.ouNumber = psRec.ouNumber;
+                              dmpContributor.ouOrgID = psRec.ouOrgID;
+
                             }
-
-                            // update contract
-                            dmpContributor.divisionName = psRec.divisionName;
-                            dmpContributor.divisionNumber = psRec.divisionNumber;
-                            dmpContributor.divisionOrgID = psRec.divisionOrgID;       
-                            dmpContributor.firstName = psRec.firstName; 
-                            dmpContributor.groupName = psRec.groupName; 
-                            dmpContributor.groupNumber = psRec.groupNumber;
-                            dmpContributor.groupOrgID = psRec.groupOrgID; 
-                            dmpContributor.lastName = psRec.lastName; 
-                            dmpContributor.orcid = psRec.orcid; 
-                            dmpContributor.ouName = psRec.ouName;
-                            dmpContributor.ouNumber = psRec.ouNumber;
-                            dmpContributor.ouOrgID = psRec.ouOrgID;
-
+                            
                           }
                           
+                        },
+                        error:(err:any)=>{
+                          console.log(err);
+                        },
+                        complete: () => {
+                          // console.log('A ... NISTPersonMetaChanged: ', this.NISTPersonMetaChanged);
+                          // console.log('B ... PrimContribOUChanged: ', this.PrimContribOUChanged);
+                          if (this.NISTPersonMetaChanged){
+                            console.info(`Metadata for ${dmpContributor.firstName} ${dmpContributor.lastName} has been been updated to reflect most recent info found in the NIST people service database.`)
+                            //  add changes to the form values if any changes were made to NIST contributors metadata
+                            this.personelForm.value['contributors'] = this.dmpContributors;
+
+                            // patch value to indicate that the form has changed
+                            this.personelForm.patchValue({
+                              contributors:this.personelForm.value['contributors']
+                            })
+
+                            // set updateNISTContrib to true to "send message" to dmp-form.component to execute autosave 
+                            this.updateContributor.updateNISTContrib$.next({numUpdates:this.contribsUpdated, isUpdated:this.NISTPersonMetaChanged});
+                          }
+
+                          if (this.PrimContribOUChanged){
+                            console.info(`${dmpContributor.firstName} ${dmpContributor.lastName} has changed OU.`)                            
+                            this.sdsvc.getParentOrgs(this.PrimContribNewOU, true).pipe(                
+                              map((recs:any) =>{              
+                                this.setResponsibleOrgs(recs);
+                                this.org_addRow();
+                                // TODO: find out why save button is turned on
+                                this.updateOU.updateNISTContrib$.next({numUpdates:this.OUsUpdated, isUpdated:this.PrimContribOUChanged});
+                              })                            
+                            ).subscribe({
+                              error: (err: any) => {
+                                console.error('Failed to pull orgs for index "'+this.PrimContribNewOU+'"'+err)
+                                
+                              },
+                              complete: () => {
+                                // console.log('Observable emitted the complete notification: NISTPersonMetaChanged', this.NISTPersonMetaChanged);
+                                console.log;
+                              }
+                            });
+                          }
+
+                          // reset flags
+                          this.NISTPersonMetaChanged = false;
+                          this.PrimContribOUChanged = false;
                         }
                         
-                      },
-                      error:(err:any)=>{
-                        console.log(err);
-                      },
-                      complete: () => {
-                        console.log('A ... NISTPersonMetaChanged: ', this.NISTPersonMetaChanged);
-                        console.log('B ... PrimContribOUChanged: ', this.PrimContribOUChanged);
-                        if (this.NISTPersonMetaChanged){
-                          //  add changes to the form values if any changes were made to NIST contributors metadata
-                          this.personelForm.value['contributors'] = this.dmpContributors;
+                      });
+                    }
+                  );
 
-                          // patch value to indicate that the form has changed
-                          this.personelForm.patchValue({
-                            contributors:this.personelForm.value['contributors']
-                          })
-
-                          // set updateNISTContrib to true to "send message" to dmp-form.component to execute autosave 
-                          this.updateContributor.updateNISTContrib$.next({numUpdates:this.contribsUpdated, isUpdated:this.NISTPersonMetaChanged});                          
-                        }
-
-                        if (this.PrimContribOUChanged){
-                          // TODO: add new Organization(s) responsible for this DMP
-                          this.sdsvc.getParentOrgs(this.PrimContribNewOU, true).pipe(                
-                            map((recs:any) =>{              
-                              this.setResponsibleOrgs(recs);
-                              this.org_addRow();
-                              // TODO: autosave org changes
-                            })                            
-                          ).subscribe({
-                            error: (err: any) => {
-                              console.log('Failed to pull orgs for index "'+this.PrimContribNewOU+'"'+err)
-                              
-                            },
-                            complete: () => {
-                              // console.log('Observable emitted the complete notification: NISTPersonMetaChanged', this.NISTPersonMetaChanged);
-                              console.log;
-                            }
-                          });
-                        }
-
-                        // reset flags
-                        this.NISTPersonMetaChanged = false;
-                        this.PrimContribOUChanged = false;
-                      }
-                      
-                    });
-                  }
-                );
+                }                
+                else{
+                  console.warn(`${dmpContributor.firstName} ${dmpContributor.lastName} has not been found in the people service. Consider removing this contributor and/or adding a new one.`)
+                }
               }
             },
             error: (err: any) => {
-              console.log('Failed to pull people index for "'+usrLastName+'"'+err)
+              console.error('Failed to pull people index for "'+usrLastName+'"'+err)
               
             },
             complete: () => {
@@ -537,7 +552,7 @@ export class PersonelComponent implements OnInit {
         // console.log("Next contributor")
       },
       error:(err:any)=>{
-        console.log(err);
+        console.error(err);
       },
       complete: () => {
         // console.log('Contributor Iteration complete!')

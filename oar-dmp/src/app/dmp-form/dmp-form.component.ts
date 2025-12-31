@@ -72,6 +72,10 @@ export class DmpFormComponent implements OnInit{
   // this is for auto updating of NIST contributors data
   formContributorsSubscription!: Subscription | null;
 
+  // To notify if any of the dmp primary contributors have their OU updated from people service
+  // this is for auto updating of Organizations responsible for this DMP
+  formOUsSubscription!: Subscription | null;
+
   // get access to methods in DataDescriptionComponent child.
 
   // this is for the purpose of reseting checkboxes.
@@ -114,8 +118,14 @@ export class DmpFormComponent implements OnInit{
   nameClass:string = "mnemonicNameNew";
 
   DMP_PDF?:DmpPdf;
+
+  // For monitoring people service changes in NIST contributors/researchers from personel component
   contributorsUpdate: UpdateIndicator = {numUpdates:0, isUpdated:false};
   contribTotalUpdates:number = 0;
+
+  // For monitoring people service changes of OU for primary NIST contributors/researchers from personel component
+  OUsUpdate: UpdateIndicator = {numUpdates:0, isUpdated:false};
+  OUsTotalUpdates:number = 0;
 
   constructor(
     private fb: UntypedFormBuilder, 
@@ -124,7 +134,8 @@ export class DmpFormComponent implements OnInit{
     private router: Router,
     private form_buttons:SubmitDmpService,
     private formChanged: FormChangedService,
-    private updateContributor: UpdateNistContributorService
+    private updateContributor: UpdateNistContributorService,
+    private updateOUs: UpdateNistContributorService
     
     ) {  
       // console.log("constructor");
@@ -293,6 +304,25 @@ export class DmpFormComponent implements OnInit{
 
   }
 
+  //subscribe to OU subjects
+  OUsSubscribe(){
+    if (!this.formOUsSubscription) {
+      //subscribe if not already subscribed
+      this.formOUsSubscription = this.updateOUs.updateNISTContrib$.subscribe({
+        next: (hasChanged:UpdateIndicator) => {
+          if (hasChanged.isUpdated){
+            // change this flag to indicate that we need to display alert about auto update of NIST contributors metadata from people service
+            this.OUsUpdate.isUpdated = hasChanged.isUpdated;
+            // update this counter to indicate how many contributors have been updated
+            this.OUsTotalUpdates = hasChanged.numUpdates;
+            this.saveDraft();            
+          }
+        }
+      });
+    }
+
+  }
+
   private changeElementClass (elID:string, add:string, remove:string){
     var saveButton = document.getElementById(elID);
     saveButton?.classList.remove(add);
@@ -377,6 +407,7 @@ export class DmpFormComponent implements OnInit{
     // arr1 is now [0, 1, 2, 3, 4, 5]        
     this.dmp = { ...this.dmp, ...patch };
     this.contributorsSubscribe();
+    this.OUsSubscribe();
   }
 
   enableSaveButton(){
@@ -443,6 +474,17 @@ export class DmpFormComponent implements OnInit{
                   // reset contributorsUpdate to initial state so that next time DMP gets sved we can display regular alert message.
                   this.contributorsUpdate = {numUpdates:0, isUpdated:false};
                   this.contribTotalUpdates = 0;
+                }
+              }
+              else if (this.OUsUpdate.isUpdated){                
+                // Automatically add new Organizations responsible for this DMP
+                this.OUsUpdate.numUpdates += 1;
+                if (this.OUsUpdate.numUpdates === this.OUsTotalUpdates){
+                  // When we are auto-saving the final Organization responsible for this DMP display the alert to inform the user about auto update
+                  alert("Organizations responsible for this DMP have been modified due to one or more primary contacts having changed OUs. To ensure your records remain in sync with NIST People Service database, your DMP record has been automatically updated and saved.");
+                  // reset OUsUpdate to initial state so that next time DMP gets sved we can display regular alert message.
+                  this.OUsUpdate = {numUpdates:0, isUpdated:false};
+                  this.OUsTotalUpdates = 0;
                 }
               }
               else {              
