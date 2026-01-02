@@ -12,9 +12,13 @@ export class UpdateNistContributorService {
  
   constructor() { 
     this.updateContributors = {numUpdates:0, isUpdated:false};
+    this.updateOUs = {numUpdates:0, isUpdated:false};
   }
 
-  updateContributors:UpdateIndicator;
+  updateContributors:UpdateIndicator;  
   updateNISTContrib$ = new Subject<UpdateIndicator>();
+
+  updateOUs:UpdateIndicator;
+  updateOUs$ = new Subject<UpdateIndicator>();
 
 }

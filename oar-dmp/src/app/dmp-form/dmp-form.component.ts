@@ -308,7 +308,7 @@ export class DmpFormComponent implements OnInit{
   OUsSubscribe(){
     if (!this.formOUsSubscription) {
       //subscribe if not already subscribed
-      this.formOUsSubscription = this.updateOUs.updateNISTContrib$.subscribe({
+      this.formOUsSubscription = this.updateOUs.updateOUs$.subscribe({
         next: (hasChanged:UpdateIndicator) => {
           if (hasChanged.isUpdated){
             // change this flag to indicate that we need to display alert about auto update of NIST contributors metadata from people service

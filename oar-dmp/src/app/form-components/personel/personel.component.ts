@@ -287,7 +287,7 @@ export class PersonelComponent implements OnInit {
     this.getNistContactsFromAPI();    
     this.getNistOrganizations();
     this.updateContributor.updateNISTContrib$.next({numUpdates:this.contribsUpdated, isUpdated:false});
-    this.updateOU.updateNISTContrib$.next({numUpdates:this.OUsUpdated, isUpdated:false});
+    this.updateOU.updateOUs$.next({numUpdates:this.OUsUpdated, isUpdated:false});
   }
 
   personelForm = this.fb.group(
@@ -482,8 +482,6 @@ export class PersonelComponent implements OnInit {
                           console.log(err);
                         },
                         complete: () => {
-                          // console.log('A ... NISTPersonMetaChanged: ', this.NISTPersonMetaChanged);
-                          // console.log('B ... PrimContribOUChanged: ', this.PrimContribOUChanged);
                           if (this.NISTPersonMetaChanged){
                             console.info(`Metadata for ${dmpContributor.firstName} ${dmpContributor.lastName} has been been updated to reflect most recent info found in the NIST people service database.`)
                             //  add changes to the form values if any changes were made to NIST contributors metadata
@@ -495,17 +493,18 @@ export class PersonelComponent implements OnInit {
                             })
 
                             // set updateNISTContrib to true to "send message" to dmp-form.component to execute autosave 
-                            this.updateContributor.updateNISTContrib$.next({numUpdates:this.contribsUpdated, isUpdated:this.NISTPersonMetaChanged});
+                            this.updateContributor.updateNISTContrib$.next({numUpdates:this.contribsUpdated, isUpdated:true});
                           }
 
                           if (this.PrimContribOUChanged){
-                            console.info(`${dmpContributor.firstName} ${dmpContributor.lastName} has changed OU.`)                            
+                            
                             this.sdsvc.getParentOrgs(this.PrimContribNewOU, true).pipe(                
-                              map((recs:any) =>{              
+                              map((recs:any) =>{        
+                                console.log(recs);
                                 this.setResponsibleOrgs(recs);
                                 this.org_addRow();
-                                // TODO: find out why save button is turned on
-                                this.updateOU.updateNISTContrib$.next({numUpdates:this.OUsUpdated, isUpdated:this.PrimContribOUChanged});
+
+                                this.updateOU.updateOUs$.next({numUpdates:this.OUsUpdated, isUpdated:true});
                               })                            
                             ).subscribe({
                               error: (err: any) => {
@@ -513,8 +512,9 @@ export class PersonelComponent implements OnInit {
                                 
                               },
                               complete: () => {
-                                // console.log('Observable emitted the complete notification: NISTPersonMetaChanged', this.NISTPersonMetaChanged);
-                                console.log;
+                                console.info(`${dmpContributor.firstName} ${dmpContributor.lastName} has changed OU.`)                            
+                                console.log('Observable emitted the complete notification: PrimContribNewOU', this.PrimContribNewOU);
+                                
                               }
                             });
                           }
