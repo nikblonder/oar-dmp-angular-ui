@@ -5,7 +5,7 @@ import { NistResourcesService } from './nist-resources.service';
 
 export function configFetcherFactory(configSvc: NistResourcesService) {
     return () => { 
-        return configSvc.fetchNistResources().subscribe();
+        return configSvc.fetchNistResources().toPromise();
     };
 }
 

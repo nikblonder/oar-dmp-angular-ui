@@ -24,6 +24,11 @@
       "es2020",
       "dom"
     ],
+    "paths": {
+      "@angular/*": [
+        "./node_modules/@angular/*"
+      ]
+    },
     "typeRoots": [
       "node_modules/@types"
     ],
