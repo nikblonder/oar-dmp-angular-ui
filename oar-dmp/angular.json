@@ -47,9 +47,7 @@
                         "styles": [
                             "@angular/material/prebuilt-themes/deeppurple-amber.css",
                             "bootstrap/dist/css/bootstrap.css",
-                            "../node_modules/oarng/src/assets/styles/font-awesome/css/font-awesome.min.css",
-                            "primeng/resources/themes/saga-blue/theme.css",
-                            "primeng/resources/primeng.min.css",
+                            "../node_modules/oarng/src/assets/styles/font-awesome/css/font-awesome.min.css",                            
                             "src/styles.scss"
                         ],
                         "scripts": []

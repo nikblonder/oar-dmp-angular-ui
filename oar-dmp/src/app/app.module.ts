@@ -34,8 +34,9 @@ import { FilterPipe } from './resource-options/filter.pipe';
 
 import { RELEASE } from '../environments/release-info';
 import { environment } from '../environments/environment';
-import { CONFIG_URL, RELEASE_INFO, AuthModule, FrameModule, StaffDirModule, ConfigModule, AuthenticationService, MockAuthenticationService } from 'oarng';
-import { ChipsModule } from 'primeng/chips';
+import { CONFIG_URL, RELEASE_INFO, AuthModule, FrameModule, StaffDirModule, ConfigModule, 
+  AuthenticationService, MockAuthenticationService, FooterComponent, HeaderComponent } from 'oarng';
+
 import { SecurityAndPrivacyComponent } from './form-components/security-and-privacy/security-and-privacy.component';
 
 @NgModule({
@@ -66,6 +67,8 @@ import { SecurityAndPrivacyComponent } from './form-components/security-and-priv
     FrameModule,
     ReactiveFormsModule,
     BrowserAnimationsModule,
+    FooterComponent,
+    HeaderComponent,
 
     MatTableModule,
     MatInputModule,
@@ -77,8 +80,7 @@ import { SecurityAndPrivacyComponent } from './form-components/security-and-priv
 
     MatAutocompleteModule,
     DmpRoutingModule,
-    NistResourcesModule,
-    ChipsModule
+    NistResourcesModule
   ],
 
   providers: [
