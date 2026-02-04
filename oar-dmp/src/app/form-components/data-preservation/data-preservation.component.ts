@@ -1,15 +1,24 @@
-import { Component, Input, Output } from '@angular/core';
+import { Component, Input, Output, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
 import { defer, map, of, startWith } from 'rxjs';
+
+import { MatChipInputEvent } from '@angular/material/chips';
+import {LiveAnnouncer} from '@angular/cdk/a11y';
+
+
 import { DMP_Meta } from '../../types/DMP.types';
 
 @Component({
   selector: 'app-data-preservation',
   templateUrl: './data-preservation.component.html',
-  styleUrls: ['./data-preservation.component.scss', '../form-layout.scss', '../form-table.scss']
+  styleUrls: ['./data-preservation.component.scss', '../form-layout.scss', '../form-table.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DataPreservationComponent {
   separatorExp: RegExp = /,|;/;
+
+  reactivePathsURLs = signal(['']);
+  announcer = inject(LiveAnnouncer);
   
   preservationForm = this.fb.group(
     {
@@ -39,6 +48,8 @@ export class DataPreservationComponent {
 
       }
     );
+
+     this.reactivePathsURLs = signal(data_preservation.pathsURLs);
   }
 
   // Because RxJS observables are compatible with Angular EventEmitters we can create an 
@@ -90,6 +101,48 @@ export class DataPreservationComponent {
 
     })
 
+  }
+
+  removeReactivePathsURLs(keyword: string) {
+    
+    this.reactivePathsURLs.update(pathsURLs => {
+      const index = pathsURLs.indexOf(keyword);
+      if (index < 0) {
+        return pathsURLs;
+      }
+
+      pathsURLs.splice(index, 1);
+      this.announcer.announce(`removed ${keyword} from reactive form`);
+
+      // reset the pathsURLs array
+      this.preservationForm.setValue(
+        {
+          pathsURLs:[]
+        }
+      )
+
+      // repopulate the array
+      pathsURLs.forEach((element)=>{
+        this.preservationForm.value['pathsURLs'].push({pathsURLs:element});
+      });
+      return [...pathsURLs];
+    });
+
+    
+  }
+
+  addReactivePathsURLs(event: MatChipInputEvent): void {
+    const value = (event.value || '').trim();
+
+    // Add our keyword
+    if (value) {
+      this.reactivePathsURLs.update(pathsURLs => [...pathsURLs, value]);
+      this.preservationForm.value['pathsURLs'].push({pathsURLs:value});
+      this.announcer.announce(`added ${value} to reactive form`);
+    }
+
+    // Clear the input value
+    event.chipInput!.clear();
   }
 
 }
