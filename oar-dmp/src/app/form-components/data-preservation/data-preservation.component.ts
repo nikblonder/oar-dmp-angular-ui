@@ -3,7 +3,7 @@ import { UntypedFormBuilder } from '@angular/forms';
 import { defer, map, of, startWith } from 'rxjs';
 
 import { MatChipInputEvent } from '@angular/material/chips';
-import {LiveAnnouncer} from '@angular/cdk/a11y';
+import { ChipsSplitterService } from 'src/app/shared/chips-splitter.service';
 
 
 import { DMP_Meta } from '../../types/DMP.types';
@@ -18,7 +18,6 @@ export class DataPreservationComponent {
   separatorExp: RegExp = /,|;/;
 
   reactivePathsURLs = signal(['']);
-  announcer = inject(LiveAnnouncer);
   
   preservationForm = this.fb.group(
     {
@@ -28,7 +27,7 @@ export class DataPreservationComponent {
     }
   );
 
-  constructor(private fb: UntypedFormBuilder) { 
+  constructor(private fb: UntypedFormBuilder, private spChips: ChipsSplitterService) { 
     // console.log("Data Preservation Component");
   }
 
@@ -112,7 +111,6 @@ export class DataPreservationComponent {
       }
 
       pathsURLs.splice(index, 1);
-      this.announcer.announce(`removed ${keyword} from reactive form`);
 
       // reset the pathsURLs array
       this.preservationForm.setValue(
@@ -132,13 +130,17 @@ export class DataPreservationComponent {
   }
 
   addReactivePathsURLs(event: MatChipInputEvent): void {
-    const value = (event.value || '').trim();
+    const chips = (this.spChips.splitChips(event.value.trim()) || '')
 
     // Add our keyword
-    if (value) {
-      this.reactivePathsURLs.update(pathsURLs => [...pathsURLs, value]);
-      this.preservationForm.value['pathsURLs'].push({pathsURLs:value});
-      this.announcer.announce(`added ${value} to reactive form`);
+    if (chips) {
+      this.reactivePathsURLs.update(pathsURLs => [...pathsURLs, ...chips]);
+      chips.forEach((chip)=>{
+        this.preservationForm.patchValue({
+          pathsURLs: chip
+        })
+      });
+      
     }
 
     // Clear the input value

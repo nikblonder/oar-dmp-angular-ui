@@ -102,11 +102,11 @@
     </div>
 
     <div class="sub-category">Technical resources equipment needed/used</div>
-    <p class="chips-info" style="padding-top: 20px;">Copy/Paste or manually type in  equipment needed/used as comma separated values: <i>Hint: a, b, c</i></p>  
+    <!-- <p class="chips-info" style="padding-top: 20px;">Copy/Paste or manually type in  equipment needed/used as comma separated values: <i>Hint: a, b, c</i></p>   -->
     <div class="p-fluid">
       <!-- <p-chips [formControl]="technicalRequirementsForm.controls['technicalResources']" [separator]="separatorExp" placeholder="Hint: a, b, c"  ></p-chips> -->
        <mat-form-field class="example-form-field">
-          <mat-label>Equipment Needed/Used</mat-label>
+          <mat-label>Click here to add equipment Needed/Used</mat-label>
           <mat-chip-grid #reactiveChipGrid aria-label="Enter reactive form keywords" [formControl]="technicalRequirementsForm.controls['technicalResources']">
           @for (keyword of reactiveInstruments(); track keyword) {
             <mat-chip-row (removed)="removeReactiveInstruments(keyword)">
@@ -118,7 +118,7 @@
           }
           </mat-chip-grid>
           <input
-            placeholder="New equipment..."
+            placeholder="Copy/Paste or manually type in Keywords/Phrases as comma or semicolon separated values e.g. a, b; c"
             [matChipInputFor]="reactiveChipGrid"
             (matChipInputTokenEnd)="addReactiveInstruments($event)"
           />

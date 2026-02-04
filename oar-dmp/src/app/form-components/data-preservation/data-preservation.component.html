@@ -20,12 +20,12 @@
       ></textarea>
 
     <div class="sub-category">Provide the file path(s) / URL(s) for where you will be saving your data (if known)</div>
-    <p class="instruction">Copy/Paste or manually type in path(s) / URL(s) as comma separated values: <i>Hint: a, b, c</i></p>
+    <!-- <p class="instruction">Copy/Paste or manually type in path(s) / URL(s) as comma separated values: <i>Hint: a, b, c</i></p> -->
     <div class="p-fluid">
       
       <!-- <p-chips [formControl]="preservationForm.controls['pathsURLs']" [separator]="separatorExp" placeholder="Hint: a, b, c"  ></p-chips> -->
        <mat-form-field class="example-form-field">
-          <mat-label>File path(s) / URL(s)</mat-label>
+          <mat-label>Click here to add file path(s) / URL(s)</mat-label>
           <mat-chip-grid #reactiveChipGrid aria-label="Enter reactive form keywords" [formControl]="preservationForm.controls['pathsURLs']">
           @for (keyword of reactivePathsURLs(); track keyword) {
             <mat-chip-row (removed)="removeReactivePathsURLs(keyword)">
@@ -37,7 +37,7 @@
           }
           </mat-chip-grid>
           <input
-            placeholder="New path / URL..."
+            placeholder="Copy/Paste or manually type in Keywords/Phrases as comma or semicolon separated values e.g. a, b; c"
             [matChipInputFor]="reactiveChipGrid"
             (matChipInputTokenEnd)="addReactivePathsURLs($event)"
           />

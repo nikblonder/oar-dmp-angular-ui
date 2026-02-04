@@ -13,7 +13,7 @@ import { SoftwareDevelopment } from '../../types/software-development.type';
 import { Subscription } from 'rxjs';
 
 import { MatChipInputEvent } from '@angular/material/chips';
-import {LiveAnnouncer} from '@angular/cdk/a11y';
+import { ChipsSplitterService } from 'src/app/shared/chips-splitter.service';
 
 interface InstrTblRow {  
   name: string;
@@ -81,9 +81,6 @@ export class StorageNeedsComponent {
   separatorExp: RegExp = /,|;/;
 
   reactiveInstruments = signal(['']);
-  announcer = inject(LiveAnnouncer);
-
-  
 
   // This mimics the technical-requirements type interface from 
   // types/technical-requirements.type.ts
@@ -106,6 +103,7 @@ export class StorageNeedsComponent {
     private dropDownService: DropDownSelectService,
     private sharedService: ResourcesService,
     private fb: UntypedFormBuilder,
+    private spChips: ChipsSplitterService
   ) { 
     // console.log("Technical Requirements Component");
   }
@@ -621,7 +619,6 @@ export class StorageNeedsComponent {
       }
 
       technicalResources.splice(index, 1);
-      this.announcer.announce(`removed ${keyword} from reactive form`);
 
       // reset the technicalResources array
       this.technicalRequirementsForm.setValue(
@@ -641,13 +638,17 @@ export class StorageNeedsComponent {
   }
 
   addReactiveInstruments(event: MatChipInputEvent): void {
-    const value = (event.value || '').trim();
+    const chips = (this.spChips.splitChips(event.value.trim()) || '')
 
     // Add our keyword
-    if (value) {
-      this.reactiveInstruments.update(technicalResources => [...technicalResources, value]);
-      this.technicalRequirementsForm.value['technicalResources'].push({technicalResources:value});
-      this.announcer.announce(`added ${value} to reactive form`);
+    if (chips) {
+      this.reactiveInstruments.update(technicalResources => [...technicalResources, ...chips]);
+      chips.forEach((chip)=>{
+        this.technicalRequirementsForm.patchValue({
+          technicalResources: chip
+        })
+      });
+      
     }
 
     // Clear the input value
