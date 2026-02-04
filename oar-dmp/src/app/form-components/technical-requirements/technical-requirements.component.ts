@@ -1,4 +1,4 @@
-import { Component, Input, Output } from '@angular/core';
+import { Component, Input, Output, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { confirmDialog } from 'src/app/shared/dmp.service';
 import { DropDownSelectService } from '../../shared/drop-down-select.service';
 //resources service to talk between two components
@@ -11,6 +11,9 @@ import { Instrument } from '../../types/instrument.type';
 import { DMP_Meta } from '../../types/DMP.types';
 import { SoftwareDevelopment } from '../../types/software-development.type';
 import { Subscription } from 'rxjs';
+
+import { MatChipInputEvent } from '@angular/material/chips';
+import {LiveAnnouncer} from '@angular/cdk/a11y';
 
 interface InstrTblRow {  
   name: string;
@@ -46,7 +49,8 @@ const INSTR_COL_SCHEMA = [
 @Component({
   selector: 'app-technical-requirements',
   templateUrl: './technical-requirements.component.html',
-  styleUrls: ['./technical-requirements.component.scss', '../form-layout.scss', '../form-table.scss']
+  styleUrls: ['./technical-requirements.component.scss', '../form-layout.scss', '../form-table.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StorageNeedsComponent {  
   // ================================  
@@ -75,6 +79,9 @@ export class StorageNeedsComponent {
   errorMessage: string = '';
   sftDev: SoftwareDevelopment = {development:"", softwareUse:"", softwareDatabase:"", softwareWebsite:""}
   separatorExp: RegExp = /,|;/;
+
+  reactiveInstruments = signal(['']);
+  announcer = inject(LiveAnnouncer);
 
   
 
@@ -124,7 +131,9 @@ export class StorageNeedsComponent {
         this.disableClear=false;
         this.disableRemove=false;
       }
-    )
+    );
+
+    this.reactiveInstruments = signal(technical_requirements.technicalResources);
 
     // set initial values for technical requirements part of the form
     // to what has been sent from the server
@@ -601,6 +610,48 @@ export class StorageNeedsComponent {
     })
     this.clearTable();
     
+  }
+
+  removeReactiveInstruments(keyword: string) {
+    
+    this.reactiveInstruments.update(technicalResources => {
+      const index = technicalResources.indexOf(keyword);
+      if (index < 0) {
+        return technicalResources;
+      }
+
+      technicalResources.splice(index, 1);
+      this.announcer.announce(`removed ${keyword} from reactive form`);
+
+      // reset the technicalResources array
+      this.technicalRequirementsForm.setValue(
+        {
+          technicalResources:[]
+        }
+      )
+
+      // repopulate the array
+      technicalResources.forEach((element)=>{
+        this.technicalRequirementsForm.value['technicalResources'].push({technicalResources:element});
+      });
+      return [...technicalResources];
+    });
+
+    
+  }
+
+  addReactiveInstruments(event: MatChipInputEvent): void {
+    const value = (event.value || '').trim();
+
+    // Add our keyword
+    if (value) {
+      this.reactiveInstruments.update(technicalResources => [...technicalResources, value]);
+      this.technicalRequirementsForm.value['technicalResources'].push({technicalResources:value});
+      this.announcer.announce(`added ${value} to reactive form`);
+    }
+
+    // Clear the input value
+    event.chipInput!.clear();
   }
 
 
