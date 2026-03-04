@@ -7,7 +7,7 @@
     "scripts": {
         "build-lib": "npm run build oarng --prefix ./lib",
         "build-oardmp": "npm run build dmp_ui2 --prefix ./oar-dmp",
-        "build-all": "npm run build oarng --prefix ./lib && npm run build oar-dmp --prefix ./oar-dmp",
+        "build-all": "npm run build oarng --prefix ./lib && npm run build dmp_ui2 --prefix ./oar-dmp",
         "start-oardmp": "npm run start dmp_ui2 --prefix ./oar-dmp",
         "test": "jest --config ./oar-dmp/jest.config.js --silent"
     },

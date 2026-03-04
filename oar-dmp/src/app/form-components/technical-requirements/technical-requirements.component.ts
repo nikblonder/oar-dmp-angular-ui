@@ -1,4 +1,4 @@
-import { Component, Input, Output } from '@angular/core';
+import { Component, Input, Output, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { confirmDialog } from 'src/app/shared/dmp.service';
 import { DropDownSelectService } from '../../shared/drop-down-select.service';
 //resources service to talk between two components
@@ -11,6 +11,9 @@ import { Instrument } from '../../types/instrument.type';
 import { DMP_Meta } from '../../types/DMP.types';
 import { SoftwareDevelopment } from '../../types/software-development.type';
 import { Subscription } from 'rxjs';
+
+import { MatChipInputEvent } from '@angular/material/chips';
+import { ChipsSplitterService } from 'src/app/shared/chips-splitter.service';
 
 interface InstrTblRow {  
   name: string;
@@ -46,7 +49,8 @@ const INSTR_COL_SCHEMA = [
 @Component({
   selector: 'app-technical-requirements',
   templateUrl: './technical-requirements.component.html',
-  styleUrls: ['./technical-requirements.component.scss', '../form-layout.scss', '../form-table.scss']
+  styleUrls: ['./technical-requirements.component.scss', '../form-layout.scss', '../form-table.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StorageNeedsComponent {  
   // ================================  
@@ -76,7 +80,7 @@ export class StorageNeedsComponent {
   sftDev: SoftwareDevelopment = {development:"", softwareUse:"", softwareDatabase:"", softwareWebsite:""}
   separatorExp: RegExp = /,|;/;
 
-  
+  reactiveInstruments = signal(['']);
 
   // This mimics the technical-requirements type interface from 
   // types/technical-requirements.type.ts
@@ -99,6 +103,7 @@ export class StorageNeedsComponent {
     private dropDownService: DropDownSelectService,
     private sharedService: ResourcesService,
     private fb: UntypedFormBuilder,
+    private spChips: ChipsSplitterService
   ) { 
     // console.log("Technical Requirements Component");
   }
@@ -124,7 +129,9 @@ export class StorageNeedsComponent {
         this.disableClear=false;
         this.disableRemove=false;
       }
-    )
+    );
+
+    this.reactiveInstruments = signal(technical_requirements.technicalResources);
 
     // set initial values for technical requirements part of the form
     // to what has been sent from the server
@@ -350,8 +357,7 @@ export class StorageNeedsComponent {
     this.techRsrcErr = '';
   }
 
-  setDataSizeDescription(e: string): void {
-    console.log("setDataSizeDescription");
+  setDataSizeDescription(e: string): void {    
     this.technicalRequirementsForm.patchValue(
       {
         setDataSizeDescription: e
@@ -602,6 +608,51 @@ export class StorageNeedsComponent {
     })
     this.clearTable();
     
+  }
+
+  removeReactiveInstruments(keyword: string) {
+    
+    this.reactiveInstruments.update(technicalResources => {
+      const index = technicalResources.indexOf(keyword);
+      if (index < 0) {
+        return technicalResources;
+      }
+
+      technicalResources.splice(index, 1);
+
+      // reset the technicalResources array
+      this.technicalRequirementsForm.setValue(
+        {
+          technicalResources:[]
+        }
+      )
+
+      // repopulate the array
+      technicalResources.forEach((element)=>{
+        this.technicalRequirementsForm.value['technicalResources'].push({technicalResources:element});
+      });
+      return [...technicalResources];
+    });
+
+    
+  }
+
+  addReactiveInstruments(event: MatChipInputEvent): void {
+    const chips = (this.spChips.splitChips(event.value.trim()) || '')
+
+    // Add our keyword
+    if (chips) {
+      this.reactiveInstruments.update(technicalResources => [...technicalResources, ...chips]);
+      chips.forEach((chip)=>{
+        this.technicalRequirementsForm.patchValue({
+          technicalResources: chip
+        })
+      });
+      
+    }
+
+    // Clear the input value
+    event.chipInput!.clear();
   }
 
 

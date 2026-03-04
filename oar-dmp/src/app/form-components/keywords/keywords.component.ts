@@ -1,16 +1,19 @@
 import { Component, Input, Output } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
+import { MatChipInputEvent } from '@angular/material/chips';
 import { defer, map, of, startWith } from 'rxjs';
 import { DMP_Meta } from '../../types/DMP.types';
+import { ChipsSplitterService } from 'src/app/shared/chips-splitter.service';
+
+import {ChangeDetectionStrategy, inject, signal} from '@angular/core';
 
 @Component({
   selector: 'app-keywords',
   templateUrl: './keywords.component.html',
-  styleUrls: ['./keywords.component.scss', '../form-layout.scss', '../form-table.scss']
+  styleUrls: ['./keywords.component.scss', '../form-layout.scss', '../form-table.scss'], 
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class KeywordsComponent {
-
-  separatorExp: RegExp = /,|;/;
+export class KeywordsComponent {  
 
   keyWordsForm = this.fb.group(
     {
@@ -18,7 +21,9 @@ export class KeywordsComponent {
     }
   );
 
-  constructor(private fb: UntypedFormBuilder) { 
+  reactiveKeywords = signal(['']);  
+
+  constructor(private fb: UntypedFormBuilder, private spChips: ChipsSplitterService) { 
     // console.log("Keywords Component");
   }
 
@@ -32,6 +37,8 @@ export class KeywordsComponent {
       keywords: key_words.keywords
 
     })
+
+    this.reactiveKeywords = signal(key_words.keywords);
 
   }
 
@@ -76,6 +83,42 @@ export class KeywordsComponent {
       }
     )
 
+  }
+
+  removeReactiveKeyword(keyword: string) {
+    
+    this.reactiveKeywords.update(keywords => {
+      const index = keywords.indexOf(keyword);
+      if (index < 0) {
+        return keywords;
+      }
+
+      keywords.splice(index, 1);
+      this.resetKeyWordsForm();
+      keywords.forEach((element)=>{
+        this.keyWordsForm.value['keywords'].push({keywords:element});
+      });
+      return [...keywords];
+    });
+
+    
+  }
+
+  addReactiveKeyword(event: MatChipInputEvent): void {
+    const chips = (this.spChips.splitChips(event.value.trim()) || '')
+
+    // Add our keyword
+    if (chips) {
+      this.reactiveKeywords.update(keywords => [...keywords, ...chips]);
+      chips.forEach((chip)=>{
+        this.keyWordsForm.patchValue({
+          keywords: chip
+        })
+      });
+    }
+
+    // Clear the input value
+    event.chipInput!.clear();
   }
 
   

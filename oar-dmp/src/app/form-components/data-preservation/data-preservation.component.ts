@@ -1,15 +1,23 @@
-import { Component, Input, Output } from '@angular/core';
+import { Component, Input, Output, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
 import { defer, map, of, startWith } from 'rxjs';
+
+import { MatChipInputEvent } from '@angular/material/chips';
+import { ChipsSplitterService } from 'src/app/shared/chips-splitter.service';
+
+
 import { DMP_Meta } from '../../types/DMP.types';
 
 @Component({
   selector: 'app-data-preservation',
   templateUrl: './data-preservation.component.html',
-  styleUrls: ['./data-preservation.component.scss', '../form-layout.scss', '../form-table.scss']
+  styleUrls: ['./data-preservation.component.scss', '../form-layout.scss', '../form-table.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DataPreservationComponent {
   separatorExp: RegExp = /,|;/;
+
+  reactivePathsURLs = signal(['']);
   
   preservationForm = this.fb.group(
     {
@@ -19,7 +27,7 @@ export class DataPreservationComponent {
     }
   );
 
-  constructor(private fb: UntypedFormBuilder) { 
+  constructor(private fb: UntypedFormBuilder, private spChips: ChipsSplitterService) { 
     // console.log("Data Preservation Component");
   }
 
@@ -39,6 +47,8 @@ export class DataPreservationComponent {
 
       }
     );
+
+     this.reactivePathsURLs = signal(data_preservation.pathsURLs);
   }
 
   // Because RxJS observables are compatible with Angular EventEmitters we can create an 
@@ -90,6 +100,51 @@ export class DataPreservationComponent {
 
     })
 
+  }
+
+  removeReactivePathsURLs(keyword: string) {
+    
+    this.reactivePathsURLs.update(pathsURLs => {
+      const index = pathsURLs.indexOf(keyword);
+      if (index < 0) {
+        return pathsURLs;
+      }
+
+      pathsURLs.splice(index, 1);
+
+      // reset the pathsURLs array
+      this.preservationForm.setValue(
+        {
+          pathsURLs:[]
+        }
+      )
+
+      // repopulate the array
+      pathsURLs.forEach((element)=>{
+        this.preservationForm.value['pathsURLs'].push({pathsURLs:element});
+      });
+      return [...pathsURLs];
+    });
+
+    
+  }
+
+  addReactivePathsURLs(event: MatChipInputEvent): void {
+    const chips = (this.spChips.splitChips(event.value.trim()) || '')
+
+    // Add our keyword
+    if (chips) {
+      this.reactivePathsURLs.update(pathsURLs => [...pathsURLs, ...chips]);
+      chips.forEach((chip)=>{
+        this.preservationForm.patchValue({
+          pathsURLs: chip
+        })
+      });
+      
+    }
+
+    // Clear the input value
+    event.chipInput!.clear();
   }
 
 }

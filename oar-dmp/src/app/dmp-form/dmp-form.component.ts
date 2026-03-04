@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, afterNextRender  } from '@angular/core';
 import { ObservedValueOf, Subscription } from "rxjs";
-import { UntypedFormBuilder, Validators } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { BasicInfoComponent } from '../form-components/basic-info/basic-info.component';
 import { PersonelComponent } from '../form-components/personel/personel.component';
 import { KeywordsComponent } from '../form-components/keywords/keywords.component';
@@ -13,7 +13,9 @@ import { DMP_Meta } from '../types/DMP.types';
 import { DmpService } from '../shared/dmp.service'
 import { SubmitDmpService } from '../shared/submit-dmp.service';//for acknowledging when form button has been 'pressed'
 import { FormChangedService } from '../shared/form-changed.service';
+import { UpdateNistContributorService } from '../shared/update-nist-contributor.service';
 import { UntypedFormControl } from '@angular/forms';
+import { UpdateIndicator } from '../types/update-indicator.type';
 
 
 // for Communicating with backend services using HTTP
@@ -26,7 +28,7 @@ import { Injectable } from '@angular/core';
 // import { Observable, throwError } from 'rxjs';
 // import { catchError, retry } from 'rxjs/operators';
 
-import { Router, ActivatedRoute, ParamMap } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { DmpPdf } from './dmp-pdf';
 
 
@@ -51,8 +53,6 @@ interface DMPForm {
 // be empty until the first child component has emitted its formReady event.
 
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import autoTable from 'jspdf-autotable'
 import { saveAs } from 'file-saver';
 
 @Component({
@@ -67,6 +67,15 @@ export class DmpFormComponent implements OnInit{
 
   dmpExportFormatSubscription!: Subscription | null;
   dmpExportFormatType: string = "";
+
+  // To notify if any of the dmp contributors have their data updated from people service
+  // this is for auto updating of NIST contributors data
+  formContributorsSubscription!: Subscription | null;
+
+  // To notify if any of the dmp primary contributors have their OU updated from people service
+  // this is for auto updating of Organizations responsible for this DMP
+  formOUsSubscription!: Subscription | null;
+
   // get access to methods in DataDescriptionComponent child.
 
   // this is for the purpose of reseting checkboxes.
@@ -110,13 +119,23 @@ export class DmpFormComponent implements OnInit{
 
   DMP_PDF?:DmpPdf;
 
+  // For monitoring people service changes in NIST contributors/researchers from personel component
+  contributorsUpdate: UpdateIndicator = {numUpdates:0, isUpdated:false};
+  contribTotalUpdates:number = 0;
+
+  // For monitoring people service changes of OU for primary NIST contributors/researchers from personel component
+  OUsUpdate: UpdateIndicator = {numUpdates:0, isUpdated:false};
+  OUsTotalUpdates:number = 0;
+
   constructor(
     private fb: UntypedFormBuilder, 
     private dmp_Service: DmpService, 
     private route: ActivatedRoute,
     private router: Router,
     private form_buttons:SubmitDmpService,
-    private formChanged: FormChangedService
+    private formChanged: FormChangedService,
+    private updateContributor: UpdateNistContributorService,
+    private updateOUs: UpdateNistContributorService
     
     ) {  
       // console.log("constructor");
@@ -166,7 +185,7 @@ export class DmpFormComponent implements OnInit{
   getFromDB:boolean = false;
 
   ngOnInit(): void {
-    // console.log("ngOnInit")
+    // console.log("dmp-form.component ngOnInit")
 
     // const elementToObserve = document.getElementById("footer");
     
@@ -184,7 +203,7 @@ export class DmpFormComponent implements OnInit{
     //     resizeObserver.observe(<Element>elementToObserve);
     
     this.formButtonSubscribe();
-    this.formExportFormatSubscribe();
+    this.formExportFormatSubscribe();    
     this.id = this.route.snapshot.paramMap.get('id')
     this.route.data.subscribe(data  => {
       this.action = data["action"] ;
@@ -259,6 +278,44 @@ export class DmpFormComponent implements OnInit{
               }
               
             }
+          }
+        }
+      });
+    }
+
+  }
+
+  //subscribe to contributor subjects
+  contributorsSubscribe(){
+    if (!this.formContributorsSubscription) {
+      //subscribe if not already subscribed
+      this.formContributorsSubscription = this.updateContributor.updateNISTContrib$.subscribe({
+        next: (hasChanged:UpdateIndicator) => {
+          if (hasChanged.isUpdated){
+            // change this flag to indicate that we need to display alert about auto update of NIST contributors metadata from people service
+            this.contributorsUpdate.isUpdated = hasChanged.isUpdated;
+            // update this counter to indicate how many contributors have been updated
+            this.contribTotalUpdates = hasChanged.numUpdates;
+            this.saveDraft();            
+          }
+        }
+      });
+    }
+
+  }
+
+  //subscribe to OU subjects
+  OUsSubscribe(){
+    if (!this.formOUsSubscription) {
+      //subscribe if not already subscribed
+      this.formOUsSubscription = this.updateOUs.updateOUs$.subscribe({
+        next: (hasChanged:UpdateIndicator) => {
+          if (hasChanged.isUpdated){
+            // change this flag to indicate that we need to display alert about auto update of NIST contributors metadata from people service
+            this.OUsUpdate.isUpdated = hasChanged.isUpdated;
+            // update this counter to indicate how many contributors have been updated
+            this.OUsTotalUpdates = hasChanged.numUpdates;
+            this.saveDraft();            
           }
         }
       });
@@ -349,6 +406,8 @@ export class DmpFormComponent implements OnInit{
     // arr1 = [...arr1, ...arr2];
     // arr1 is now [0, 1, 2, 3, 4, 5]        
     this.dmp = { ...this.dmp, ...patch };
+    this.contributorsSubscribe();
+    this.OUsSubscribe();
   }
 
   enableSaveButton(){
@@ -367,26 +426,6 @@ export class DmpFormComponent implements OnInit{
     // of submitting a DMP record for publishing
     this.saveDraft();
 
-    
-    // if (!this.dmp){
-    //   alert("Cannot save DMP. Missing DMP in submit")
-    //   throw new Error("Missing DMP in submit");
-    // }
-    // if (this.name.value === '') {
-    //   alert("Cannot save DMP. Record name is empty.")
-    //   throw new Error("Record name is empty");
-    // }
-    // this.dmp_Service.createDMP(this.dmp, this.name.value).subscribe(
-    //   {
-    //     next: data => {
-    //         this.router.navigate(['success']);
-    //     },
-    //     error: error => {
-    //       console.log(error.message);
-    //       this.router.navigate(['error', { dmpError: this.buildErrorMessage(error) }]);
-    //     }
-    //   }
-    // );
   }
 
   saveDraft(){
@@ -426,7 +465,33 @@ export class DmpFormComponent implements OnInit{
               this.router.navigate(['edit', this.id]);
               this.disableSaveButton();
               this.formSaved = true;
-              alert("Successfuly saved draft of the data");
+              if (this.contributorsUpdate.isUpdated){                
+                // Automatically save updates to NIST contributors metadata
+                this.contributorsUpdate.numUpdates += 1;
+                if (this.contributorsUpdate.numUpdates === this.contribTotalUpdates){
+                  // When we are auto-saving the final contributor display the alert to inform the user about auto update
+                  alert("We have detected changes to profile information (e.g. ORCID, OU or Group) for one or more of NIST contributors associated with this DMP record. To ensure your records remain in sync with NIST People Service database, your DMP record has been automatically updated and saved.");
+                  // reset contributorsUpdate to initial state so that next time DMP gets sved we can display regular alert message.
+                  this.contributorsUpdate = {numUpdates:0, isUpdated:false};
+                  this.contribTotalUpdates = 0;
+                }
+              }
+              else if (this.OUsUpdate.isUpdated){                
+                // Automatically add new Organizations responsible for this DMP
+                this.OUsUpdate.numUpdates += 1;
+                if (this.OUsUpdate.numUpdates === this.OUsTotalUpdates){
+                  // When we are auto-saving the final Organization responsible for this DMP display the alert to inform the user about auto update
+                  alert("Organizations responsible for this DMP have been modified due to one or more primary contacts having changed OUs. To ensure your records remain in sync with NIST People Service database, your DMP record has been automatically updated and saved.");
+                  // reset OUsUpdate to initial state so that next time DMP gets sved we can display regular alert message.
+                  this.OUsUpdate = {numUpdates:0, isUpdated:false};
+                  this.OUsTotalUpdates = 0;
+                }
+              }
+              else {              
+                // Default save alert
+                alert("Successfuly saved DMP record");
+              }
+                
             },
             error: error => {
               console.log(error.message);
@@ -506,41 +571,6 @@ export class DmpFormComponent implements OnInit{
       errorMessage += error.statusText + " ";
     }
     return errorMessage;
-
-  }
-
-  screenshotPDF(){
-    //capture full screenshot of the DMP form
-
-    let DATA: any = document.getElementById('dmp_panel');
-    let PDF = new jsPDF('p', 'mm', 'a4');
-    html2canvas(DATA).then((canvas) => {
-      var imgData = canvas.toDataURL('image/png');
-
-      /*
-      Here are the numbers (paper width and height) that I found to work. 
-      It still creates a little overlap part between the pages, but good enough for me.
-      if you can find an official number from jsPDF, use them.
-      */
-      var imgWidth = 210; 
-      var pageHeight = 295;  
-      var imgHeight = canvas.height * imgWidth / canvas.width;
-      var heightLeft = imgHeight;
-
-      var doc = new jsPDF('p', 'mm');
-      var position = 0;
-
-      doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        doc.addPage();
-        doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-      doc.save('angular-demo.pdf');
-    });
 
   }
 

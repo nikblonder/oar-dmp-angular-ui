@@ -22,21 +22,26 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatAutocompleteModule } from '@angular/material/autocomplete'; 
+import { MatChipsModule } from '@angular/material/chips';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 
-import {MatAutocompleteModule} from '@angular/material/autocomplete'; 
+
 import { DmpRoutingModule } from './dmp-routing/dmp-routing.module';
 import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
 import { PageErrorComponent } from './page-error/page-error.component';
 import { PageDmpPublishedComponent } from './page-dmp-published/page-dmp-published.component';
-import { AngularResizeEventModule } from 'angular-resize-event';
 // import { ConfigModule } from './config/config.module';
 import { NistResourcesModule } from './config/nist-resources.module';
 import { FilterPipe } from './resource-options/filter.pipe';
 
 import { RELEASE } from '../environments/release-info';
 import { environment } from '../environments/environment';
-import { CONFIG_URL, RELEASE_INFO, AuthModule, FrameModule, StaffDirModule, ConfigModule, AuthenticationService, MockAuthenticationService } from 'oarng';
-import { ChipsModule } from 'primeng/chips';
+import { CONFIG_URL, RELEASE_INFO, AuthModule, FrameModule, StaffDirModule, ConfigModule, 
+  AuthenticationService, MockAuthenticationService, FooterComponent, HeaderComponent } from 'oarng';
+
+
 import { SecurityAndPrivacyComponent } from './form-components/security-and-privacy/security-and-privacy.component';
 
 @NgModule({
@@ -67,6 +72,8 @@ import { SecurityAndPrivacyComponent } from './form-components/security-and-priv
     FrameModule,
     ReactiveFormsModule,
     BrowserAnimationsModule,
+    FooterComponent,
+    HeaderComponent,
 
     MatTableModule,
     MatInputModule,
@@ -75,12 +82,13 @@ import { SecurityAndPrivacyComponent } from './form-components/security-and-priv
     MatNativeDateModule,
     MatCheckboxModule,
     MatDialogModule,
-
     MatAutocompleteModule,
+    MatChipsModule,
+    MatFormFieldModule,
+    MatIconModule,
+    
     DmpRoutingModule,
-    AngularResizeEventModule,
-    NistResourcesModule,
-    ChipsModule
+    NistResourcesModule
   ],
 
   providers: [

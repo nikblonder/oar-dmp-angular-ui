@@ -28,11 +28,11 @@ COPY node-*-sha256.txt /tmp/
 RUN arch=`dpkg --print-architecture` && \
     { [ "$arch" != "amd64" ] || arch="x64"; } && echo $arch > /etc/plat-arch
 RUN cd /tmp && arch=`cat /etc/plat-arch`  \
-            && wget https://nodejs.org/dist/v16.17.1/node-v16.17.1-linux-${arch}.tar.xz \
+            && wget https://nodejs.org/dist/v18.20.8/node-v18.20.8-linux-${arch}.tar.xz \
             && sha256sum -c node-${arch}-sha256.txt
 RUN cd /usr/local && arch=`cat /etc/plat-arch`                       \
-                  && tar xJf /tmp/node-v16.17.1-linux-${arch}.tar.xz \
-                  && ln -s node-v16.17.1-linux-${arch} node          \
+                  && tar xJf /tmp/node-v18.20.8-linux-${arch}.tar.xz \
+                  && ln -s node-v18.20.8-linux-${arch} node          \
                   && cd bin                                          \
                   && ln -s ../node/bin/node node                     \
                   && ln -s ../node/bin/npm  npm                      \
