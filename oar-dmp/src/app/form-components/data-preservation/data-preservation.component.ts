@@ -36,19 +36,34 @@ export class DataPreservationComponent {
   // the form. Here you could do any data transformation you need.
   @Input()
   set initialDMP_Meta(data_preservation: DMP_Meta) {
-    
-    // set initial values for data preservation part of the form
-    // to what has been sent from the server
-    this.preservationForm.patchValue(
-      {
-        preservationDescription:  data_preservation.preservationDescription,
-        dataAccess:               data_preservation.dataAccess,
-        pathsURLs:                data_preservation.pathsURLs
+    if (Object.keys(data_preservation).length < 1){
+      this.preservationForm.patchValue(
+        {
+          preservationDescription:  '',
+          dataAccess:               '',
+          pathsURLs:                []
+
+        }
+      );
+      this.reactivePathsURLs = signal([]);
+    }
+    else{
+      // set initial values for data preservation part of the form
+      // to what has been sent from the server
+      this.preservationForm.patchValue(
+        {
+          preservationDescription:  data_preservation.preservationDescription,
+          dataAccess:               data_preservation.dataAccess,
+          pathsURLs:                data_preservation.pathsURLs
+
+        }
+      );
+
+      this.reactivePathsURLs = signal(data_preservation.pathsURLs);
 
       }
-    );
-
-     this.reactivePathsURLs = signal(data_preservation.pathsURLs);
+    
+    
   }
 
   // Because RxJS observables are compatible with Angular EventEmitters we can create an 

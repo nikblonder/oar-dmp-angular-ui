@@ -47,15 +47,26 @@ export class DataDescriptionComponent implements OnInit {
 
   @Input()
   set initialDMP_Meta(data_description: DMP_Meta) {
-    
-    this.initialCategories = data_description.dataCategories;
+    if (Object.keys(data_description).length < 1){
+      this.dataDescriptionForm.patchValue(
+        {
+          dataDescription:                '',
+          dataCategories:                 []
+        }
+      ); 
+    }
+    else{
+      this.initialCategories = data_description.dataCategories;
 
-    this.dataDescriptionForm.patchValue(
-      {
-        dataDescription:                data_description.dataDescription,
-        dataCategories:                 data_description.dataCategories
-      }
-    );
+      this.dataDescriptionForm.patchValue(
+        {
+          dataDescription:                data_description.dataDescription,
+          dataCategories:                 data_description.dataCategories
+        }
+      );      
+    }
+    
+    
   }
 
   @Output()

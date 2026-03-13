@@ -43,38 +43,46 @@ export class SecurityAndPrivacyComponent {
   // the form. Here you could do any data transformation you need.
   @Input()
   set initialDMP_Meta(securityAndPrivacy: DMP_Meta) {
-    if(securityAndPrivacy.security_and_privacy.data_sensitivity !== undefined){
-      securityAndPrivacy.security_and_privacy.data_sensitivity.forEach (
-        (value)=>{
-          // populate map for displaying check marks on the GUI form
-          this.dataSensitivityMap.set(value,true)
+    if (Object.keys(securityAndPrivacy).length < 1){
+      this.securityAndPrivacyForm.patchValue({
+        dataSensitivity:          [],
+        dataCUI:                  []
+      });
+    }
+    else {
+      if(securityAndPrivacy.security_and_privacy.data_sensitivity !== undefined){
+        securityAndPrivacy.security_and_privacy.data_sensitivity.forEach (
+          (value)=>{
+            // populate map for displaying check marks on the GUI form
+            this.dataSensitivityMap.set(value,true)
 
-          this.showCUI();
-        }
-      );
-    }
-    else{
-      // initialize arrays if they don't exist in od DMP records
-      securityAndPrivacy.security_and_privacy.data_sensitivity = [];
-    }
+            this.showCUI();
+          }
+        );
+      }
+      else{
+        // initialize arrays if they don't exist in od DMP records
+        securityAndPrivacy.security_and_privacy.data_sensitivity = [];
+      }
 
-    if(securityAndPrivacy.security_and_privacy.cui !== undefined){
-      securityAndPrivacy.security_and_privacy.cui.forEach (
-        (value)=>{
-          // populate map for displaying check marks on the GUI form
-          this.cuiMap.set(value,true)
-        }
-      );
-    }
-    else{
-      // initialize arrays if they don't exist in od DMP records
-      securityAndPrivacy.security_and_privacy.cui = [];
-    }
+      if(securityAndPrivacy.security_and_privacy.cui !== undefined){
+        securityAndPrivacy.security_and_privacy.cui.forEach (
+          (value)=>{
+            // populate map for displaying check marks on the GUI form
+            this.cuiMap.set(value,true)
+          }
+        );
+      }
+      else{
+        // initialize arrays if they don't exist in od DMP records
+        securityAndPrivacy.security_and_privacy.cui = [];
+      }
 
-    this.securityAndPrivacyForm.patchValue({
-      dataSensitivity:          securityAndPrivacy.security_and_privacy.data_sensitivity,
-      dataCUI:                  securityAndPrivacy.security_and_privacy.cui
-    });
+      this.securityAndPrivacyForm.patchValue({
+        dataSensitivity:          securityAndPrivacy.security_and_privacy.data_sensitivity,
+        dataCUI:                  securityAndPrivacy.security_and_privacy.cui
+      });
+    }
   }
 
   // We need to extract the form values and provide them to the parent component whenever 
