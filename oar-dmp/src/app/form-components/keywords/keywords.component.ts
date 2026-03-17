@@ -32,14 +32,23 @@ export class KeywordsComponent {
   // the form. Here you could do any data transformation you need.
   @Input()
   set initialDMP_Meta(key_words: DMP_Meta){
-    // set initial value of keywords form to what has been sent from the server
-    this.keyWordsForm.patchValue({
-      keywords: key_words.keywords
+    if (Object.keys(key_words).length < 1){
+      this.keyWordsForm.patchValue({
+        keywords: []
 
-    })
+      })
 
-    this.reactiveKeywords = signal(key_words.keywords);
+      this.reactiveKeywords = signal([]);
+    }
+    else{
+      // set initial value of keywords form to what has been sent from the server
+      this.keyWordsForm.patchValue({
+        keywords: key_words.keywords
 
+      })
+
+      this.reactiveKeywords = signal(key_words.keywords);
+    }
   }
 
   // Because RxJS observables are compatible with Angular EventEmitters we can create an 

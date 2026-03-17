@@ -306,76 +306,85 @@ export class PersonelComponent implements OnInit {
   set initialDMP_Meta(personel: DMP_Meta) {
     // loop over organizations array sent from the server and populate local copy of 
     // organizations aray in order to populate the table of organizations in the GUI interface
-    personel.organizations.forEach( 
-      (org, index) => {        
-        this.dmpOrganizations.push(
-          {
-            id:index,
-            groupName:org.groupName,
-            groupNumber: org.groupNumber,
-            groupOrgID: org.groupOrgID,
-            
-            divisionName:org.divisionName,
-            divisionNumber: org.divisionNumber,
-            divisionOrgID: org.divisionOrgID,
-            divisionAcronym: org.divisionAcronym,
-
-            ouName: org.ouName,
-            ouNumber: org.ouNumber,
-            ouOrgID: org.ouOrgID,
-            ouAcronym: org.ouAcronym,            
-            
-            isEdit:false
-          }
-        );
-        this.org_disableClear=false;
-        this.org_disableRemove=false;
-      }
+    if (Object.keys(personel).length < 1){
+      this.personelForm.patchValue({
+        contributors:               [],
+        organizations:              []
+      });
       
-    );
-    // loop over resources array sent from the server and populate local copy of 
-    // resources array to populate the table of resources in the user interface
-    this.contribOrcidWarn = '';
-    personel.contributors.forEach(
-      (dmpContributor, index) => {
-        if (dmpContributor.orcid.length === 0){
-          this.contribOrcidWarn = PersonelComponent.ORCID_WARNING;
+    }
+    else{
+      personel.organizations.forEach( 
+        (org, index) => {        
+          this.dmpOrganizations.push(
+            {
+              id:index,
+              groupName:org.groupName,
+              groupNumber: org.groupNumber,
+              groupOrgID: org.groupOrgID,
+              
+              divisionName:org.divisionName,
+              divisionNumber: org.divisionNumber,
+              divisionOrgID: org.divisionOrgID,
+              divisionAcronym: org.divisionAcronym,
+
+              ouName: org.ouName,
+              ouNumber: org.ouNumber,
+              ouOrgID: org.ouOrgID,
+              ouAcronym: org.ouAcronym,            
+              
+              isEdit:false
+            }
+          );
+          this.org_disableClear=false;
+          this.org_disableRemove=false;
         }
-        this.dmpContributors.push({
-          id:           index, 
-          isEdit:       false, 
-      
-          firstName:        dmpContributor.firstName,
-          lastName:         dmpContributor.lastName,
-          orcid:            dmpContributor.orcid,
-          emailAddress:     dmpContributor.emailAddress,
+        
+      );
+      // loop over resources array sent from the server and populate local copy of 
+      // resources array to populate the table of resources in the user interface
+      this.contribOrcidWarn = '';
+      personel.contributors.forEach(
+        (dmpContributor, index) => {
+          if (dmpContributor.orcid.length === 0){
+            this.contribOrcidWarn = PersonelComponent.ORCID_WARNING;
+          }
+          this.dmpContributors.push({
+            id:           index, 
+            isEdit:       false, 
+        
+            firstName:        dmpContributor.firstName,
+            lastName:         dmpContributor.lastName,
+            orcid:            dmpContributor.orcid,
+            emailAddress:     dmpContributor.emailAddress,
 
-          groupOrgID:       dmpContributor.groupOrgID,
-          groupNumber:      dmpContributor.groupNumber,
-          groupName:        dmpContributor.groupName,
+            groupOrgID:       dmpContributor.groupOrgID,
+            groupNumber:      dmpContributor.groupNumber,
+            groupName:        dmpContributor.groupName,
 
-          divisionOrgID:    dmpContributor.divisionOrgID,
-          divisionNumber:   dmpContributor.divisionNumber,
-          divisionName:     dmpContributor.divisionName,
+            divisionOrgID:    dmpContributor.divisionOrgID,
+            divisionNumber:   dmpContributor.divisionNumber,
+            divisionName:     dmpContributor.divisionName,
 
-          ouOrgID:          dmpContributor.ouOrgID,
-          ouNumber:         dmpContributor.ouNumber,
-          ouName:           dmpContributor.ouName,
-       
-          primary_contact:  dmpContributor.primary_contact,
-          role:             dmpContributor.role,
-          institution:      dmpContributor.institution
-          
-        });
-        this.disableClear=false;
-        this.disableRemove=false;
-      }
-    )
+            ouOrgID:          dmpContributor.ouOrgID,
+            ouNumber:         dmpContributor.ouNumber,
+            ouName:           dmpContributor.ouName,
+        
+            primary_contact:  dmpContributor.primary_contact,
+            role:             dmpContributor.role,
+            institution:      dmpContributor.institution
+            
+          });
+          this.disableClear=false;
+          this.disableRemove=false;
+        }
+      )
 
-    this.personelForm.patchValue({
-      contributors:               personel.contributors,
-      organizations:              personel.organizations
-    });
+      this.personelForm.patchValue({
+        contributors:               personel.contributors,
+        organizations:              personel.organizations
+      });
+    }
   }
 
   // Because RxJS observables are compatible with Angular EventEmitters we can create an 
