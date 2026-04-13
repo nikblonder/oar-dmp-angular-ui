@@ -346,7 +346,7 @@ export class PersonelComponent implements OnInit {
       this.contribOrcidWarn = '';
       personel.contributors.forEach(
         (dmpContributor, index) => {
-          if (dmpContributor.orcid.length === 0){
+          if (!dmpContributor.orcid){
             this.contribOrcidWarn = PersonelComponent.ORCID_WARNING;
           }
           this.dmpContributors.push({
