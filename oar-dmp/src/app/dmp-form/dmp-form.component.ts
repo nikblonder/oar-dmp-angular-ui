@@ -127,6 +127,8 @@ export class DmpFormComponent implements OnInit{
   OUsUpdate: UpdateIndicator = {numUpdates:0, isUpdated:false};
   OUsTotalUpdates:number = 0;
 
+  canWrite:boolean = false;
+
   constructor(
     private fb: UntypedFormBuilder, 
     private dmp_Service: DmpService, 
@@ -138,7 +140,7 @@ export class DmpFormComponent implements OnInit{
     private updateOUs: UpdateNistContributorService
     
     ) {  
-      // console.log("constructor");
+      console.log("constructor");
       afterNextRender(() => {
         // used for one-time initialisation: 
         // subscribe to track if the form has been changed by performing
@@ -185,7 +187,7 @@ export class DmpFormComponent implements OnInit{
   getFromDB:boolean = false;
 
   ngOnInit(): void {
-    // console.log("dmp-form.component ngOnInit")
+    console.log("dmp-form.component ngOnInit")
 
     // const elementToObserve = document.getElementById("footer");
     
@@ -205,6 +207,23 @@ export class DmpFormComponent implements OnInit{
     this.formButtonSubscribe();
     this.formExportFormatSubscribe();    
     this.id = this.route.snapshot.paramMap.get('id')
+
+    if (this.id !==null){
+      // if record ID exists then check if the user has write permissions
+      this.dmp_Service.writePermission(this.id).subscribe(
+        {
+          next: permission => {
+            this.canWrite = permission;
+          },
+          error: error => {
+            console.log(error.message);
+            this.router.navigate(['error', { dmpError: this.buildErrorMessage(error) }]);
+              
+          }
+        }
+      );
+    }
+
     this.route.data.subscribe(data  => {
       this.action = data["action"] ;
       if (this.action === "edit"){
@@ -260,7 +279,13 @@ export class DmpFormComponent implements OnInit{
             this.resetDmp();
           }
           else if (this.formButtonMessage === "Save"){
-            this.saveDraft();
+            if (this.canWrite){
+              this.saveDraft();
+            }
+            else{
+              alert("Can not save changes to  DMP because you don't have write privileges on this record.");
+            }
+            
           }
           else if (this.formButtonMessage === "Download"){
             if (this.dmpExportFormatType === ""){
@@ -290,14 +315,14 @@ export class DmpFormComponent implements OnInit{
     if (!this.formContributorsSubscription) {
       //subscribe if not already subscribed
       this.formContributorsSubscription = this.updateContributor.updateNISTContrib$.subscribe({
-        next: (hasChanged:UpdateIndicator) => {
+        next: (hasChanged:UpdateIndicator) => {          
           if (hasChanged.isUpdated){
             // change this flag to indicate that we need to display alert about auto update of NIST contributors metadata from people service
             this.contributorsUpdate.isUpdated = hasChanged.isUpdated;
             // update this counter to indicate how many contributors have been updated
             this.contribTotalUpdates = hasChanged.numUpdates;
             this.saveDraft();            
-          }
+          }          
         }
       });
     }
@@ -309,7 +334,7 @@ export class DmpFormComponent implements OnInit{
     if (!this.formOUsSubscription) {
       //subscribe if not already subscribed
       this.formOUsSubscription = this.updateOUs.updateOUs$.subscribe({
-        next: (hasChanged:UpdateIndicator) => {
+        next: (hasChanged:UpdateIndicator) => {          
           if (hasChanged.isUpdated){
             // change this flag to indicate that we need to display alert about auto update of NIST contributors metadata from people service
             this.OUsUpdate.isUpdated = hasChanged.isUpdated;
@@ -406,8 +431,10 @@ export class DmpFormComponent implements OnInit{
     // arr1 = [...arr1, ...arr2];
     // arr1 is now [0, 1, 2, 3, 4, 5]        
     this.dmp = { ...this.dmp, ...patch };
-    this.contributorsSubscribe();
-    this.OUsSubscribe();
+    if (this.canWrite){
+      this.contributorsSubscribe();
+      this.OUsSubscribe();
+    }
   }
 
   enableSaveButton(){
