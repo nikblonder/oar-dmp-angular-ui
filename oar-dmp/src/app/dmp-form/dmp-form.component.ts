@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, afterNextRender  } from '@angular/core';
-import { ObservedValueOf, Subscription } from "rxjs";
+import { ObservedValueOf, Subscription, forkJoin, switchMap, of, EMPTY } from "rxjs";
 import { UntypedFormBuilder } from '@angular/forms';
 import { BasicInfoComponent } from '../form-components/basic-info/basic-info.component';
 import { PersonelComponent } from '../form-components/personel/personel.component';
@@ -127,7 +127,9 @@ export class DmpFormComponent implements OnInit{
   OUsUpdate: UpdateIndicator = {numUpdates:0, isUpdated:false};
   OUsTotalUpdates:number = 0;
 
-  canWrite:boolean = false;
+  canWrite:boolean  = false;
+  isAdmin:boolean   = false;
+  canDelete:boolean = false;
 
   constructor(
     private fb: UntypedFormBuilder, 
@@ -206,23 +208,7 @@ export class DmpFormComponent implements OnInit{
     
     this.formButtonSubscribe();
     this.formExportFormatSubscribe();    
-    this.id = this.route.snapshot.paramMap.get('id')
-
-    if (this.id !==null){
-      // if record ID exists then check if the user has write permissions
-      this.dmp_Service.writePermission(this.id).subscribe(
-        {
-          next: permission => {
-            this.canWrite = permission;
-          },
-          error: error => {
-            console.log(error.message);
-            this.router.navigate(['error', { dmpError: this.buildErrorMessage(error) }]);
-              
-          }
-        }
-      );
-    }
+    this.id = this.route.snapshot.paramMap.get('id');
 
     this.route.data.subscribe(data  => {
       this.action = data["action"] ;
@@ -236,24 +222,47 @@ export class DmpFormComponent implements OnInit{
       }
     });
 
-    // Fetch initial data from the backend
-    this.dmp_Service.fetchDMP(this.action, this.id).subscribe(
+    // 1. Start with the permission check
+    this.dmp_Service.aclsPermission(this.id, 'read').pipe(
+      switchMap(hasReadAccess => {
+        if (hasReadAccess) {
+          // 2. If true, move to the next "link" in the chain: fetch everything else
+          return forkJoin({
+            dmpData: this.dmp_Service.fetchDMP(this.action, this.id), // Fetch initial data from the backend
+            writePerm: this.dmp_Service.aclsPermission(this.id, 'write'),
+            adminPerm: this.dmp_Service.aclsPermission(this.id, 'admin'),
+            deletePerm: this.dmp_Service.aclsPermission(this.id, 'delete'),
+          });
+        }
+        else {
+          // 3. If false, stop the chain and handle the lack of access
+          this.router.navigate(['error', { dmpError: "You do not have read privileges for this record." }]);
+          return EMPTY; // Effectively kills the stream so 'next' isn't called
+        }
+      })
+    ).subscribe(
       {
-        next: data => {
+        next: (result) => {
+          const { dmpData, writePerm, adminPerm, deletePerm } = result;
           if (this.id !==null){
             // fetch DMP data from the backend
-            this.initialDMP = data.data;
-            this.dmp = data.data;
-            this.name.setValue(data.name);
+            this.initialDMP = dmpData.data;
+            this.dmp = dmpData.data;
+            this.name.setValue(dmpData.name);
             this.getFromDB = true;
           }
           else{
             // empty new form for creating new DMP
-            this.initialDMP = data;
-            this.dmp = data;
+            this.initialDMP = dmpData;
+            this.dmp = dmpData;
             // disable save button by default until user has made a change on the form
             this.disableSaveButton();
           }
+
+          // Set permission flags
+          this.canWrite = writePerm;
+          this.isAdmin = adminPerm;
+          this.canDelete = deletePerm
         },
         error: error => {
           console.log(error.message);

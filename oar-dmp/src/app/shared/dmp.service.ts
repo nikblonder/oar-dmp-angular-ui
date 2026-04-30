@@ -162,13 +162,13 @@ export class DmpService {
 
   }
 
-  writePermission(recordID:string|null) {   
+  aclsPermission(recordID:string|null, permissionType:string) {   
     /**
      * get DMP write permissions from API
      */
     let apiAddress:string = this.configService.getConfig<DMPConfiguration>().PDRDMP; //this.PDR_API;
     if (recordID !==null){
-      apiAddress += "/" + recordID +"/acls/write/:user";
+      apiAddress += "/" + recordID +"/acls/" + permissionType + "/:user";
     }
     return this.authService.getCredentials().pipe(
       switchMap(creds => {
