@@ -535,17 +535,17 @@ export class PersonelComponent implements OnInit {
 
       if (oldValue !== newValue) {
         console.info(`\u2139 %c[UPDATE] ${field}:`, 'color: #2196F3; font-weight: bold;', `Old Value: ${oldValue} -> New Value ${newValue}`);
+
+        //// Handle specific logic for Primary Contact OU changes while we still have the 'oldValue'
+        if (field === 'groupOrgID' && dmpContributor.primary_contact === "Yes") {
+          console.log('\u2139 %c[OU CHANGE DETECTED] Primary contact moved to new OU:', 'color: #F44336; font-weight: bold;', newValue);
+          this.PrimContribOUChanged = true; 
+          this.PrimContribNewOU = newValue;
+        }
         // Apply the change - update the fields
         dmpContributor[field] = newValue;
       }
     });
-
-    // Handle specific logic for Primary Contact OU changes 
-    if (dmpContributor.groupOrgID !== psRec.groupOrgID && dmpContributor.primary_contact === "Yes") {
-      console.info('\u2139 %c[OU CHANGE] Primary contact moved to new OU:', 'color: #F44336; font-weight: bold;', psRec.groupOrgID);
-      this.PrimContribOUChanged = true; 
-      this.PrimContribNewOU = psRec.groupOrgID; 
-    }
 
     console.groupEnd();
 
