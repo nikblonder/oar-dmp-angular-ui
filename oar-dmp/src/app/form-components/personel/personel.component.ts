@@ -442,15 +442,17 @@ export class PersonelComponent implements OnInit {
                 // and do a match on email address.
                 // It would be good for the future to add NIST ID to dmp contacts metadata
                 // and use that to directly search people service.
+                console.log(usrLastName, idx);
                 this.suggestions = (idx as SDSIndex).getSuggestions(usrLastName);
 
                 if (this.suggestions.length > 0){
+                  console.log('iterrate over suggestions: ',this.suggestions.length, this.suggestions);
                   // iterrate over the suggestions that come from the people service
                   this.suggestions.forEach(
                     (aPerson)=>{
                       aPerson.getRecord().subscribe({
                         next:(psRec:any) =>{
-                          // console.log(psRec);
+                          console.log('make comparison on email address', psRec);
                           // make comparison on email address
                           if ((dmpContributor.emailAddress === psRec.emailAddress)){
                             if (this.NISTContributorHasChanged(dmpContributor, psRec)){  
