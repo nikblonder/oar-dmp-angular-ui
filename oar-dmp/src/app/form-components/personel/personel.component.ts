@@ -468,7 +468,7 @@ export class PersonelComponent implements OnInit {
                 
                 if (psRec && this.NISTContributorHasChanged(dmpContributor, psRec)) {
                   this.updateContributorData(dmpContributor, psRec);
-                  console.info(`Metadata for ${dmpContributor.firstName} ${dmpContributor.lastName} does not match most recent info found in the NIST people service database.`)
+                  // console.info(`Metadata for ${dmpContributor.firstName} ${dmpContributor.lastName} does not match most recent info found in the NIST people service database.`)
                   return { dmpContributor, psRec, changed: true };
                 }
                 return { dmpContributor, changed: false };
@@ -514,33 +514,41 @@ export class PersonelComponent implements OnInit {
   }
 
   /** 
-   * Helper to update the object properties from source 14-16
+   * Helper to update the object properties
    */
   private updateContributorData(dmpContributor: any, psRec: any) {
     this.NISTPersonMetaChanged = true;
-    this.contribsUpdated += 1; 
+    this.contribsUpdated += 1;
+    
+    // Define the fields to check for changes 
+    const fieldsToUpdate = [
+      'divisionName', 'divisionNumber', 'divisionOrgID', 
+      'firstName', 'lastName', 'groupName', 'groupNumber', 
+      'groupOrgID', 'orcid', 'ouName', 'ouNumber', 'ouOrgID'
+    ];
 
+    console.group(`Changes for ${dmpContributor.firstName} ${dmpContributor.lastName}`);
+  
+    fieldsToUpdate.forEach(field => {
+      const oldValue = dmpContributor[field];
+      const newValue = psRec[field];
+
+      if (oldValue !== newValue) {
+        console.info(`\u2139 %c[UPDATE] ${field}:`, 'color: #2196F3; font-weight: bold;', `Old Value: ${oldValue} -> New Value ${newValue}`);
+        // Apply the change - update the fields
+        dmpContributor[field] = newValue;
+      }
+    });
+
+    // Handle specific logic for Primary Contact OU changes 
     if (dmpContributor.groupOrgID !== psRec.groupOrgID && dmpContributor.primary_contact === "Yes") {
-      this.PrimContribOUChanged = true;
+      console.info('\u2139 %c[OU CHANGE] Primary contact moved to new OU:', 'color: #F44336; font-weight: bold;', psRec.groupOrgID);
+      this.PrimContribOUChanged = true; 
       this.PrimContribNewOU = psRec.groupOrgID; 
-      console.info(`${dmpContributor.firstName} ${dmpContributor.lastName} has changed OU.`)
     }
 
-    // Update fields 
-    Object.assign(dmpContributor, {
-      divisionName: psRec.divisionName,
-      divisionNumber: psRec.divisionNumber,
-      divisionOrgID: psRec.divisionOrgID,
-      firstName: psRec.firstName,
-      groupName: psRec.groupName,
-      groupNumber: psRec.groupNumber,
-      groupOrgID: psRec.groupOrgID,
-      lastName: psRec.lastName,
-      orcid: psRec.orcid,
-      ouName: psRec.ouName,
-      ouNumber: psRec.ouNumber,
-      ouOrgID: psRec.ouOrgID
-    });
+    console.groupEnd();
+
   }
 
   /**
@@ -651,7 +659,7 @@ export class PersonelComponent implements OnInit {
               return this.suggestions;
             }),
             catchError( err => {
-              console.log('Failed to pull people record'+err)
+              console.error('Failed to pull people record'+err)
               return []
             })
           )
@@ -675,7 +683,7 @@ export class PersonelComponent implements OnInit {
                   return this.suggestions;
                 }),
                 catchError( err => {
-                  console.log('Failed to pull people index for "'+usrInput+'"'+err)
+                  console.error('Failed to pull people index for "'+usrInput+'"'+err)
                   return [];
                 })
                 
@@ -1092,7 +1100,7 @@ export class PersonelComponent implements OnInit {
             this.org_addRow();
           },
           error: (err: any) => {
-            console.log('Failed to pull orgs for index "'+this.presonID+'"'+err)
+            console.error('Failed to pull orgs for index "'+this.presonID+'"'+err)
             
           }
         })
@@ -1339,7 +1347,7 @@ export class PersonelComponent implements OnInit {
               return []
             }),
             catchError( err => {
-              console.log('Failed to pull orgs for index "'+usrInput.id+'"'+err)
+              console.error('Failed to pull orgs for index "'+usrInput.id+'"'+err)
               return [];
             })
           )
@@ -1358,7 +1366,7 @@ export class PersonelComponent implements OnInit {
                 return this.orgSuggestions;
               }),
               catchError( err => {
-                console.log('Failed to pull orgs index for "'+usrInput+'": '+err)
+                console.error('Failed to pull orgs index for "'+usrInput+'": '+err)
                 return [];
               })
             );
@@ -1396,7 +1404,7 @@ export class PersonelComponent implements OnInit {
         
       }),
       catchError( err => {
-        console.log('Failed to pull orgs index'+err)
+        console.error('Failed to pull orgs index'+err)
         return [];
       })
 
