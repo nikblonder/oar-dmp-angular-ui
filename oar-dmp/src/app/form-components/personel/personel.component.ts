@@ -437,6 +437,11 @@ export class PersonelComponent implements OnInit {
       // If there is a change update metadata and set NISTPersonMetaChanged to true to 
       // indicate that this data needs to be automatically saved without any user intraction
       concatMap((dmpContributor: any) => {
+
+        if (!dmpContributor.institution || dmpContributor.institution.toUpperCase() !== 'NIST'){
+          // don't perform autoupdate for external contributors
+         return of({ dmpContributor, changed: false });
+        }
         const usrLastName = dmpContributor.lastName;
 
         // Call people service for the index
