@@ -57,12 +57,11 @@ export class TechnicalRequirementsComponent implements OnInit, OnDestroy {
 
   // Shown via the info icon next to the section header.
   sectionInfo: string =
-    "Estimate the data size this project will generate and indicate whether you're " +
-    "developing software. Under Technical facilities/resources, list broader needs " +
-    "like lab space, compute clusters, or storage systems. Under Instruments, list " +
-    "specific pieces of equipment used to collect or generate the data, along with " +
-    "a description or URL for each. Your selections here highlight matching " +
-    "resources in the NIST Resources panel.";
+    "Estimate the data size this project will generate, indicate whether you're " +
+    "developing software, and list any facilities, resources, or instruments " +
+    "needed. See the info icons below for details on each. Depending on the " +
+    "choices you make here, different resources will be highlighted in the " +
+    "NIST Resources panel.";
 
   // Shown via the info icon next to the "Technical facilities/resources
   // needed/used" sub-heading.
