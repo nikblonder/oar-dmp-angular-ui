@@ -4,7 +4,6 @@ import { Credentials, AuthenticationService, StaffDirectoryService, Configuratio
   PermissionManagerDialogComponent } from 'oarng';
 import { MatDialog } from '@angular/material/dialog';
 import { SubmitDmpService } from './shared/submit-dmp.service';
-import { DropDownSelectService } from './shared/drop-down-select.service';
 import { FormChangedService } from './shared/form-changed.service';
 import { DMPConfiguration } from './shared/config.model';
 
@@ -20,16 +19,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   authMessage: string = "You are not authenticated.";
 
-  exportType: string = "";
-  exportFormats = [
-    { id: "1", format: 'PDF' },
-    { id: "2", format: 'Markdown' },
-    { id: "3", format: 'JSON' }
-  ];
-
   disableSaveBtn: boolean = false;
   hasUnsavedChanges: boolean = false;
-  disableDownloadBtn: boolean = true;
   currentDmpId: string | null = null;
 
   private destroy$ = new Subject<void>();
@@ -38,7 +29,6 @@ export class AppComponent implements OnInit, OnDestroy {
     public authService: AuthenticationService,
     private sdsvc: StaffDirectoryService,
     private form_buttons: SubmitDmpService,
-    private dropDownService: DropDownSelectService,
     private formChangedService: FormChangedService,
     private dialog: MatDialog,
     private configService: ConfigurationService
@@ -86,27 +76,25 @@ export class AppComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  setExportFormat(): void {
-    const match = this.dropDownService.getDropDownText(this.exportType, this.exportFormats)[0];
-    if (!match) {
-      return;
-    }
-    const dataFormat = match.format;
-    this.form_buttons.setexportFormat(dataFormat);
-    this.form_buttons.exportFormatSubject$.next(dataFormat);
-    this.form_buttons.setButtonMessage('Download');
-    this.form_buttons.buttonSubject$.next('Download');
-    this.disableDownloadBtn = false;
+  /**
+   * Download buttons are disabled until the record has been saved at least
+   * once (currentDmpId set) AND there are no unsaved edits since. This
+   * replaces the old alert-after-click validation in dmp-form's
+   * handleDownloadRequest with an upfront, visible disabled state.
+   */
+  get disableDownloadBtns(): boolean {
+    return !this.currentDmpId || this.hasUnsavedChanges;
   }
 
   /**
-   * Dispatches the selected action to the DMP form component.
-   * Actions are passed explicitly from the template (e.g. 'Save', 'Download')
-   * rather than read from button text, so display changes don't affect dispatch.
+   * Dispatches the selected action to the DMP form component. `format` is
+   * only relevant for 'Download' — each format button passes its own format
+   * directly, so there's no separate "select a format" step.
    */
-  dmpButtonClick(action: string): void {
-    this.form_buttons.setButtonMessage(action);
-    this.form_buttons.buttonSubject$.next(action);
+  dmpButtonClick(action: string, format?: string): void {
+    const payload = { action, format };
+    this.form_buttons.setButtonMessage(payload);
+    this.form_buttons.buttonSubject$.next(payload);
   }
 
   openShareDialog(): void {

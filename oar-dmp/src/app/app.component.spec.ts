@@ -5,8 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 
 import { AppComponent } from './app.component';
 import { AuthenticationService, StaffDirectoryService, ConfigurationService } from 'oarng';
-import { SubmitDmpService } from './shared/submit-dmp.service';
-import { DropDownSelectService } from './shared/drop-down-select.service';
+import { SubmitDmpService, DmpButtonAction } from './shared/submit-dmp.service';
 import { FormChangedService } from './shared/form-changed.service';
 
 describe('AppComponent', () => {
@@ -22,14 +21,8 @@ describe('AppComponent', () => {
   };
 
   let submitDmpServiceMock: {
-    setexportFormat: jest.Mock;
-    exportFormatSubject$: { next: jest.Mock };
     setButtonMessage: jest.Mock;
     buttonSubject$: { next: jest.Mock };
-  };
-
-  let dropDownSelectServiceMock: {
-    getDropDownText: jest.Mock;
   };
 
   let disableSaveBtnSubject: Subject<boolean>;
@@ -55,14 +48,8 @@ describe('AppComponent', () => {
     };
 
     submitDmpServiceMock = {
-      setexportFormat: jest.fn(),
-      exportFormatSubject$: { next: jest.fn() },
       setButtonMessage: jest.fn(),
       buttonSubject$: { next: jest.fn() }
-    };
-
-    dropDownSelectServiceMock = {
-      getDropDownText: jest.fn()
     };
 
     disableSaveBtnSubject = new Subject<boolean>();
@@ -94,7 +81,6 @@ describe('AppComponent', () => {
         { provide: AuthenticationService, useValue: authServiceMock },
         { provide: StaffDirectoryService, useValue: staffDirectoryServiceMock },
         { provide: SubmitDmpService, useValue: submitDmpServiceMock },
-        { provide: DropDownSelectService, useValue: dropDownSelectServiceMock },
         { provide: FormChangedService, useValue: formChangedServiceMock },
         { provide: MatDialog, useValue: dialogMock },
         { provide: ConfigurationService, useValue: configServiceMock }
@@ -194,36 +180,73 @@ describe('AppComponent', () => {
     expect(component.readyDisplay).toBe(true);
   });
 
-  it('should update export format and enable download button', () => {
-    dropDownSelectServiceMock.getDropDownText.mockReturnValue([
-      { id: '1', format: 'PDF' }
-    ]);
+  // -------------------------------------------------------------------------
+  // dmpButtonClick — dispatch to SubmitDmpService
+  // -------------------------------------------------------------------------
+  describe('dmpButtonClick', () => {
+    it('dispatches a bare Save action', () => {
+      component.dmpButtonClick('Save');
 
-    component.exportType = '1';
-    component.setExportFormat();
+      expect(submitDmpServiceMock.setButtonMessage).toHaveBeenCalledWith({ action: 'Save', format: undefined });
+      expect(submitDmpServiceMock.buttonSubject$.next).toHaveBeenCalledWith({ action: 'Save', format: undefined });
+    });
 
-    expect(submitDmpServiceMock.setexportFormat).toHaveBeenCalledWith('PDF');
-    expect(submitDmpServiceMock.exportFormatSubject$.next).toHaveBeenCalledWith('PDF');
-    expect(submitDmpServiceMock.setButtonMessage).toHaveBeenCalledWith('Download');
-    expect(submitDmpServiceMock.buttonSubject$.next).toHaveBeenCalledWith('Download');
-    expect(component.disableDownloadBtn).toBe(false);
+    it('dispatches a Download action with the PDF format', () => {
+      component.dmpButtonClick('Download', 'PDF');
+
+      const expected: DmpButtonAction = { action: 'Download', format: 'PDF' };
+      expect(submitDmpServiceMock.setButtonMessage).toHaveBeenCalledWith(expected);
+      expect(submitDmpServiceMock.buttonSubject$.next).toHaveBeenCalledWith(expected);
+    });
+
+    it('dispatches a Download action with the Markdown format', () => {
+      component.dmpButtonClick('Download', 'Markdown');
+
+      expect(submitDmpServiceMock.buttonSubject$.next).toHaveBeenCalledWith({ action: 'Download', format: 'Markdown' });
+    });
+
+    it('dispatches a Download action with the JSON format', () => {
+      component.dmpButtonClick('Download', 'JSON');
+
+      expect(submitDmpServiceMock.buttonSubject$.next).toHaveBeenCalledWith({ action: 'Download', format: 'JSON' });
+    });
   });
 
-  it('should not emit when export format lookup returns no match', () => {
-    dropDownSelectServiceMock.getDropDownText.mockReturnValue([]);
+  // -------------------------------------------------------------------------
+  // disableDownloadBtns — derived from currentDmpId + hasUnsavedChanges
+  // -------------------------------------------------------------------------
+  describe('disableDownloadBtns', () => {
+    it('is true when no record has been saved yet (currentDmpId is null)', () => {
+      fixture.detectChanges();
+      expect(component.currentDmpId).toBeNull();
+      expect(component.disableDownloadBtns).toBe(true);
+    });
 
-    component.exportType = 'unknown';
-    component.setExportFormat();
+    it('is true when a record exists but has unsaved changes', () => {
+      fixture.detectChanges();
+      currentDmpIdSubject.next('dmp-abc');
+      hasUnsavedChangesSubject.next(true);
 
-    expect(submitDmpServiceMock.setexportFormat).not.toHaveBeenCalled();
-    expect(component.disableDownloadBtn).toBe(true);
-  });
+      expect(component.disableDownloadBtns).toBe(true);
+    });
 
-  it('should dispatch clicked button action', () => {
-    component.dmpButtonClick('Save');
+    it('is false once a record has been saved and there are no unsaved changes', () => {
+      fixture.detectChanges();
+      currentDmpIdSubject.next('dmp-abc');
+      hasUnsavedChangesSubject.next(false);
 
-    expect(submitDmpServiceMock.setButtonMessage).toHaveBeenCalledWith('Save');
-    expect(submitDmpServiceMock.buttonSubject$.next).toHaveBeenCalledWith('Save');
+      expect(component.disableDownloadBtns).toBe(false);
+    });
+
+    it('flips back to true if changes are made after being saved', () => {
+      fixture.detectChanges();
+      currentDmpIdSubject.next('dmp-abc');
+      hasUnsavedChangesSubject.next(false);
+      expect(component.disableDownloadBtns).toBe(false);
+
+      hasUnsavedChangesSubject.next(true);
+      expect(component.disableDownloadBtns).toBe(true);
+    });
   });
 
   it('should react to save button state changes', () => {

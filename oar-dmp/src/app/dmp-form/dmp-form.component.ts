@@ -11,7 +11,7 @@ import { DataDescriptionComponent } from '../form-components/data-description/da
 import { DataPreservationComponent } from '../form-components/data-preservation/data-preservation.component';
 import { DMP_Meta } from '../types/DMP.types';
 import { DmpService } from '../shared/dmp.service'
-import { SubmitDmpService } from '../shared/submit-dmp.service';//for acknowledging when form button has been 'pressed'
+import { SubmitDmpService, DmpButtonAction } from '../shared/submit-dmp.service';//for acknowledging when form button has been 'pressed'
 import { FormChangedService } from '../shared/form-changed.service';
 import { UpdateNistContributorService } from '../shared/update-nist-contributor.service';
 import { DmpExportService } from '../shared/dmp-export.service';
@@ -59,7 +59,6 @@ export class DmpFormComponent implements OnInit, OnDestroy {
 
   // --- Existing fields ------------------------------------------------------
   formButtonMessage: string = "";
-  dmpExportFormatType: string = "";
 
   // Guard so the merged autosave stream is wired only once, even though
   // patchDMP() — its trigger — fires on every patch.
@@ -187,7 +186,6 @@ export class DmpFormComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.formButtonSubscribe();
-    this.formExportFormatSubscribe();
 
     this.id = this.route.snapshot.paramMap.get('id');
     this.formChanged.currentDmpId$.next(this.id);
@@ -388,51 +386,41 @@ export class DmpFormComponent implements OnInit, OnDestroy {
   // Subscriptions — all torn down via takeUntil(this.destroy$)
   // ==========================================================================
 
-  /** Reacts to the  / Save / Download buttons in the control bar. */
+  /** Reacts to the Save / Download buttons in the control bar. Each Download
+   *  click carries its own format, so there's no separate format-selection
+   *  step and no "select a format" validation branch. */
   private formButtonSubscribe(): void {
     this.form_buttons.buttonSubject$
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (message) => {
-          this.formButtonMessage = message; // the message itself is the trigger
-          if (this.formButtonMessage === "Save") {
+        next: (message: DmpButtonAction) => {
+          this.formButtonMessage = message.action;
+          if (message.action === "Save") {
             if (this.canWrite) {
               this.saveDraft();
             } else {
               alert("Can not save changes to DMP because you don't have write privileges on this record.");
             }
-          } else if (this.formButtonMessage === "Download") {
-            this.handleDownloadRequest();
+          } else if (message.action === "Download") {
+            this.handleDownloadRequest(message.format);
           }
         }
       });
   }
 
-  /** Extracted from the old inline Download branch for readability. */
-  private handleDownloadRequest(): void {
-    if (this.dmpExportFormatType === "") {
-      alert("Please select DMP export format from the drop down menu.");
+  /**
+   * Downloads are only reachable from an enabled control-bar button, and the
+   * app-level component disables those buttons unless the record has been
+   * saved at least once (id assigned) and has no unsaved edits since. That
+   * moved the old alert-based validation (missing format / unsaved changes /
+   * new-record no-op) upfront into the UI, so this just drives the export.
+   */
+  private handleDownloadRequest(format: string | undefined): void {
+    if (!format) {
+      console.error('Download requested without a format.');
       return;
     }
-    if (!this.formSaved) {
-      alert("Please save changes to your DMP form before exporting.");
-      return;
-    }
-    // Prevent exporting twice when creating a fresh record.
-    if (this.action !== "new") {
-      this.exportService.export(this.dmp, this.dmpExportFormatType as any);
-    }
-  }
-
-  /** Tracks the export format selected in the control bar's dropdown. */
-  private formExportFormatSubscribe(): void {
-    this.form_buttons.exportFormatSubject$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (message) => {
-          this.dmpExportFormatType = message;
-        }
-      });
+    this.exportService.export(this.dmp, format as any);
   }
  
   /**

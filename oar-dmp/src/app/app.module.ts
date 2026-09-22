@@ -26,6 +26,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 
 import { DmpRoutingModule } from './dmp-routing/dmp-routing.module';
@@ -84,6 +85,7 @@ import { SecurityAndPrivacyComponent } from './form-components/security-and-priv
     MatChipsModule,
     MatFormFieldModule,
     MatIconModule,
+    MatTooltipModule,
     
     DmpRoutingModule,
     NistResourcesModule,

@@ -9,7 +9,7 @@ import _ from 'lodash';
 
 import { DmpFormComponent } from './dmp-form.component';
 import { DmpService } from '../shared/dmp.service';
-import { SubmitDmpService } from '../shared/submit-dmp.service';
+import { SubmitDmpService, DmpButtonAction } from '../shared/submit-dmp.service';
 import { FormChangedService } from '../shared/form-changed.service';
 import { UpdateNistContributorService } from '../shared/update-nist-contributor.service';
 import { DmpExportService } from '../shared/dmp-export.service';
@@ -26,8 +26,7 @@ describe('DmpFormComponent', () => {
   let peopleUpdatesMock: any;
   let exportServiceMock: any;
 
-  let buttonSubject$: Subject<string>;
-  let exportFormatSubject$: Subject<string>;
+  let buttonSubject$: Subject<DmpButtonAction>;
   let updateNISTContrib$: Subject<any>;
   let updateOUs$: Subject<any>;
 
@@ -46,8 +45,7 @@ describe('DmpFormComponent', () => {
   };
 
   beforeEach(async () => {
-    buttonSubject$ = new Subject<string>();
-    exportFormatSubject$ = new Subject<string>();
+    buttonSubject$ = new Subject<DmpButtonAction>();
     updateNISTContrib$ = new Subject<any>();
     updateOUs$ = new Subject<any>();
 
@@ -74,8 +72,7 @@ describe('DmpFormComponent', () => {
     };
 
     submitDmpServiceMock = {
-      buttonSubject$: buttonSubject$.asObservable(),
-      exportFormatSubject$: exportFormatSubject$.asObservable()
+      buttonSubject$: buttonSubject$.asObservable()
     };
 
     formChangedServiceMock = {
@@ -241,58 +238,42 @@ describe('DmpFormComponent', () => {
       fixture.detectChanges();
     });
 
-    it('should call saveDraft when "Save" is emitted and canWrite is true', () => {
+    it('should call saveDraft when a Save action is emitted and canWrite is true', () => {
       const saveSpy = jest.spyOn(component, 'saveDraft');
       component.canWrite = true;
-      buttonSubject$.next('Save');
+      buttonSubject$.next({ action: 'Save' });
       expect(saveSpy).toHaveBeenCalled();
     });
 
-    it('should alert and not save when "Save" is emitted without write access', () => {
+    it('should alert and not save when a Save action is emitted without write access', () => {
       const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
       const saveSpy = jest.spyOn(component, 'saveDraft');
       component.canWrite = false;
-      buttonSubject$.next('Save');
+      buttonSubject$.next({ action: 'Save' });
       expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining("don't have write privileges"));
       expect(saveSpy).not.toHaveBeenCalled();
     });
 
-    it('should alert when downloading without selecting an export format', () => {
-      const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
-      component.dmpExportFormatType = '';
-      buttonSubject$.next('Download');
-      expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining('export format'));
+    it('should export immediately when a Download action arrives with a format', () => {
+      component.dmp = _.cloneDeep(blankDmp) as any;
+      buttonSubject$.next({ action: 'Download', format: 'PDF' });
+      expect(exportServiceMock.export).toHaveBeenCalledWith(component.dmp, 'PDF');
+    });
+
+    it('should export using whatever format is supplied on each Download click', () => {
+      component.dmp = _.cloneDeep(blankDmp) as any;
+      buttonSubject$.next({ action: 'Download', format: 'Markdown' });
+      expect(exportServiceMock.export).toHaveBeenLastCalledWith(component.dmp, 'Markdown');
+
+      buttonSubject$.next({ action: 'Download', format: 'JSON' });
+      expect(exportServiceMock.export).toHaveBeenLastCalledWith(component.dmp, 'JSON');
+    });
+
+    it('should log an error and not export when a Download action arrives with no format', () => {
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      buttonSubject$.next({ action: 'Download' });
       expect(exportServiceMock.export).not.toHaveBeenCalled();
-    });
-
-    it('should alert when downloading with unsaved changes', () => {
-      const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
-      component.dmpExportFormatType = 'pdf';
-      component.formSaved = false;
-      buttonSubject$.next('Download');
-      expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining('save changes'));
-      expect(exportServiceMock.export).not.toHaveBeenCalled();
-    });
-
-    it('should export when format selected, form saved, and action is not "new"', () => {
-      component.dmpExportFormatType = 'pdf';
-      component.formSaved = true;
-      component.action = 'edit';
-      buttonSubject$.next('Download');
-      expect(exportServiceMock.export).toHaveBeenCalledWith(component.dmp, 'pdf');
-    });
-
-    it('should not export twice for a freshly created record (action === "new")', () => {
-      component.dmpExportFormatType = 'pdf';
-      component.formSaved = true;
-      component.action = 'new';
-      buttonSubject$.next('Download');
-      expect(exportServiceMock.export).not.toHaveBeenCalled();
-    });
-
-    it('should track selected export format from exportFormatSubject$', () => {
-      exportFormatSubject$.next('json');
-      expect(component.dmpExportFormatType).toBe('json');
+      expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('without a format'));
     });
   });
 
