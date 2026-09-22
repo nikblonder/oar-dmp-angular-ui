@@ -76,6 +76,16 @@ describe('TechnicalRequirementsComponent', () => {
     expect(typeof component.sectionInfo).toBe('string');
   });
 
+  it('should expose a non-empty facilitiesInfo for the facilities/resources sub-heading tooltip', () => {
+    expect(component.facilitiesInfo).toBeTruthy();
+    expect(typeof component.facilitiesInfo).toBe('string');
+  });
+
+  it('should expose a non-empty instrumentsInfo for the instruments sub-heading tooltip', () => {
+    expect(component.instrumentsInfo).toBeTruthy();
+    expect(typeof component.instrumentsInfo).toBe('string');
+  });
+
   // -------------------------------------------------------------------------
   // Form defaults
   // -------------------------------------------------------------------------

@@ -106,12 +106,17 @@
       </div>
     </div>
 
-    <div class="sub-category">Technical resources equipment needed/used</div>
+    <div class="sub-category">
+      Technical facilities/resources needed/used
+      <span class="subheader-info-icon-wrap" [matTooltip]="facilitiesInfo" matTooltipPosition="above">
+        <mat-icon class="subheader-info-icon">info</mat-icon>
+      </span>
+    </div>
     <!-- <p class="chips-info" style="padding-top: 20px;">Copy/Paste or manually type in  equipment needed/used as comma separated values: <i>Hint: a, b, c</i></p>   -->
     <div class="p-fluid">
       <!-- <p-chips [formControl]="technicalRequirementsForm.controls['technicalResources']" [separator]="separatorExp" placeholder="Hint: a, b, c"  ></p-chips> -->
        <mat-form-field class="example-form-field">
-          <mat-label>Click here to add equipment Needed/Used</mat-label>
+          <mat-label>Click here to add facilities/resources Needed/Used</mat-label>
           <mat-chip-grid #reactiveChipGrid aria-label="Enter reactive form keywords" [formControl]="technicalRequirementsForm.controls['technicalResources']">
           @for (keyword of reactiveInstruments(); track keyword) {
             <mat-chip-row (removed)="removeReactiveInstruments(keyword)">
@@ -124,7 +129,7 @@
           </mat-chip-grid>
           <input
             #equipmentChips
-            placeholder="Copy/Paste or manually type in equipment Needed/Used as comma or semicolon separated values e.g. a, b; c"
+            placeholder="Copy/Paste or manually type in facilities/resources Needed/Used as comma or semicolon separated values e.g. a, b; c"
             [matChipInputFor]="reactiveChipGrid"
             (matChipInputTokenEnd)="addReactiveInstruments($event)"
             (blur)="onBlur($event)"
@@ -133,7 +138,12 @@
         </mat-form-field>
     </div>
 
-    <div class="sub-category">Instruments needed/used</div>
+    <div class="sub-category">
+      Instruments needed/used
+      <span class="subheader-info-icon-wrap" [matTooltip]="instrumentsInfo" matTooltipPosition="above">
+        <mat-icon class="subheader-info-icon">info</mat-icon>
+      </span>
+    </div>
     <p class="instrument-instructions">
       Enter both an instrument name and a description or URL, then click Add.
     </p>

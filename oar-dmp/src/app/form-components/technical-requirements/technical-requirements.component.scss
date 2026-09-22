@@ -13,3 +13,60 @@
 .example-form-field {
     width: 100%;
 }
+
+// Always-visible explanation of what's needed to add an instrument row.
+// Sits directly under the "Instruments needed/used" sub-header so it reads
+// as instructions for the whole mini-form, not as an error state.
+.instrument-instructions {
+  font-size: 13px;
+  color: #555;
+  margin: 4px 0 10px;
+}
+
+// Wrapper carries the tooltip since matTooltip doesn't fire on a disabled
+// button (disabled elements suppress mouseenter in most browsers).
+.add-instrument-tooltip-wrap {
+  display: inline-block;
+  pointer-events: auto;
+}
+
+// Live hint shown next to Add while it's disabled, explaining exactly what's
+// still missing. Disappears once both fields are filled and Add is enabled.
+.add-instrument-hint {
+  font-size: 12px;
+  color: #b20000;
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+// Info icon next to a .sub-category bar. Mirrors the main .header treatment:
+// centered text, icon absolutely positioned at the right, white icon color
+// against the bar's dark background (#6a6d6e from the shared .sub-category
+// style) — just sized down to match the sub-heading's smaller visual weight.
+.sub-category {
+  position: relative;
+  text-align: center;
+}
+
+.subheader-info-icon-wrap {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  pointer-events: auto;
+}
+
+.subheader-info-icon {
+  font-size: 16px;
+  height: 16px;
+  width: 16px;
+  line-height: 16px;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: help;
+
+  &:hover {
+    color: #ffffff;
+  }
+}
