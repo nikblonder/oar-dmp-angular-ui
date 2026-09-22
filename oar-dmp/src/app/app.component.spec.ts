@@ -100,6 +100,25 @@ describe('AppComponent', () => {
     expect(component.title).toBe('dmp_ui2');
   });
 
+  // -------------------------------------------------------------------------
+  // Header title fields — passed to <app-header> via titleLn1/titleLn2.
+  // Without these, oarng's HeaderComponent falls back to its own default
+  // ("MIDAS DATA PUBLISHING"), which is wrong for this app.
+  // -------------------------------------------------------------------------
+  describe('header title fields', () => {
+    it('sets appVersion to "1.0"', () => {
+      expect(component.appVersion).toBe('1.0');
+    });
+
+    it('sets titleLn1 to "MIDAS"', () => {
+      expect(component.titleLn1).toBe('MIDAS');
+    });
+
+    it('sets titleLn2 to "DATA MANAGEMENT"', () => {
+      expect(component.titleLn2).toBe('DATA MANAGEMENT');
+    });
+  });
+
   it('should set authenticated user message on init', () => {
     fixture.detectChanges();
 

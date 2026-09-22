@@ -1,5 +1,5 @@
 <div *ngIf="readyDisplay">
-    <app-header appVersion="1.0" id="myHeader"></app-header>
+    <app-header [appVersion]="appVersion" [titleLn1]="titleLn1" [titleLn2]="titleLn2" id="myHeader"></app-header>
 </div>
 
 <div *ngIf="creds && readyDisplay" class="mat-typography">

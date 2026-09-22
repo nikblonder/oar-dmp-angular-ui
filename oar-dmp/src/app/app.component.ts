@@ -19,6 +19,13 @@ export class AppComponent implements OnInit, OnDestroy {
 
   authMessage: string = "You are not authenticated.";
 
+  // Passed to <app-header>. Without these, oarng's HeaderComponent falls
+  // back to its own default title text ("MIDAS DATA PUBLISHING"), which is
+  // wrong for this app.
+  appVersion: string = "1.0";
+  titleLn1: string = "MIDAS";
+  titleLn2: string = "DATA MANAGEMENT";
+
   disableSaveBtn: boolean = false;
   hasUnsavedChanges: boolean = false;
   currentDmpId: string | null = null;
