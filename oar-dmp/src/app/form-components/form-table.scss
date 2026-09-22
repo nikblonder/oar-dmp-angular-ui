@@ -51,6 +51,23 @@ $button_red: #B20000;
   justify-content: space-between;
 }
 
+// Modifier for toolbars with only a Remove Selected + Add pair (no Clear
+// button). The base .table-header uses space-between, which was originally
+// there to push a Clear button to the far side from Remove Selected/Add.
+// Without Clear, space-between instead splits Remove Selected and Add apart
+// to opposite ends — so here we collapse the toolbar to a single left-aligned
+// group and let .table-header-btn-group control the spacing between the two
+// buttons themselves.
+.table-header-grouped {
+  justify-content: flex-start;
+}
+
+.table-header-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 ::ng-deep .mat-form-field-infix {
   width: 100% !important;
 }

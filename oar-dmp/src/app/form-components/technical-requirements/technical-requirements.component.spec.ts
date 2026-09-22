@@ -146,11 +146,10 @@ describe('TechnicalRequirementsComponent', () => {
       expect(v.softwareWebsite).toBe('');
     });
 
-    it('enables Clear/Remove buttons when instruments are loaded', () => {
+    it('enables the Remove Selected button when instruments are loaded', () => {
       component.initialDMP_Meta = makeDmp({
         instruments: [{ name: 'A', description_url: 'u' }],
       });
-      expect(component.disableClear).toBe(false);
       expect(component.disableRemove).toBe(false);
     });
   });
@@ -324,6 +323,17 @@ describe('TechnicalRequirementsComponent', () => {
       expect(component.dmpInstrumentsTbl.length).toBe(1);
     });
 
+    it('removeRow disables the Remove Selected button once the table is empty', () => {
+      jest.spyOn(dmpService, 'confirmDialog').mockReturnValue(true);
+      component.dmpInstrument = { name: 'A', description_url: 'ua' };
+      component.addRow();
+
+      component.removeRow(component.dmpInstrumentsTbl[0].id);
+
+      expect(component.dmpInstrumentsTbl).toEqual([]);
+      expect(component.disableRemove).toBe(true);
+    });
+
     it('removeSelectedRows removes only rows flagged isSelected', () => {
       jest.spyOn(dmpService, 'confirmDialog').mockReturnValue(true);
       component.dmpInstrument = { name: 'A', description_url: 'ua' };
@@ -339,25 +349,16 @@ describe('TechnicalRequirementsComponent', () => {
       expect(component.dmpInstrumentsTbl[0].name).toBe('B');
     });
 
-    it('clearTable empties the instruments table and form when confirmed', () => {
+    it('removeSelectedRows disables the Remove Selected button once the table is empty', () => {
       jest.spyOn(dmpService, 'confirmDialog').mockReturnValue(true);
       component.dmpInstrument = { name: 'A', description_url: 'ua' };
       component.addRow();
+      (component.dmpInstrumentsTbl[0] as any).isSelected = true;
 
-      component.clearTable();
+      component.removeSelectedRows();
 
       expect(component.dmpInstrumentsTbl).toEqual([]);
-      expect(component.technicalRequirementsForm.value.instruments).toEqual([]);
-      expect(component.disableClear).toBe(true);
       expect(component.disableRemove).toBe(true);
-    });
-
-    it('clearTable does nothing when cancelled', () => {
-      jest.spyOn(dmpService, 'confirmDialog').mockReturnValue(false);
-      component.dmpInstrument = { name: 'A', description_url: 'ua' };
-      component.addRow();
-      component.clearTable();
-      expect(component.dmpInstrumentsTbl.length).toBe(1);
     });
 
     it('checkInstrData enables Add only when both fields are filled', () => {

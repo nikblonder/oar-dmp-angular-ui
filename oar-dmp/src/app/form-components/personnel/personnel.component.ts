@@ -222,7 +222,6 @@ export class PersonnelComponent implements OnDestroy {
   // used for organizations table
   // ================================
   org_disableAdd:boolean = true;
-  org_disableClear:boolean = true;
   org_disableRemove:boolean = true;
   org_errorMessage: string = '';
   dmpOrganizations: dmpOrganizations[] = []
@@ -256,7 +255,6 @@ export class PersonnelComponent implements OnDestroy {
   orgOuAcronym!:string;
 
   disableAdd:boolean = true;
-  disableClear:boolean = true;
   disableRemove:boolean = true;
 
   contrib_dispCols: string[] = CONTRIB_COL_SCHEMA.map((col) => col.key);
@@ -379,7 +377,6 @@ export class PersonnelComponent implements OnDestroy {
             isEdit:false
           }
         );
-        this.org_disableClear=false;
         this.org_disableRemove=false;
       }
     );
@@ -418,7 +415,6 @@ export class PersonnelComponent implements OnDestroy {
           role:             dmpContributor.role,
           institution:      dmpContributor.institution
         });
-        this.disableClear=false;
         this.disableRemove=false;
       }
     );
@@ -966,20 +962,7 @@ export class PersonnelComponent implements OnDestroy {
     this.refreshOrcidWarning();
 
     if (this.dmpContributors.length === 0) {
-      this.disableClear = true;
       this.disableRemove = true;
-    }
-  }
-
-  clearTable(){
-    const result = confirmDialog("Are you sure you want to delete all contributors for this DMP?");
-
-    if (result) {
-      this.dmpContributors = [];
-      this.resetWarningAndErrorMessages();
-      this.personnelForm.patchValue({ contributors: [] })
-      this.disableClear=true;
-      this.disableRemove=true;
     }
   }
 
@@ -1041,7 +1024,6 @@ export class PersonnelComponent implements OnDestroy {
     this.syncContributorsToForm();
     this.refreshOrcidWarning();
 
-    this.disableClear = false;
     this.disableRemove = false;
   }
 
@@ -1107,7 +1089,6 @@ export class PersonnelComponent implements OnDestroy {
         "Contributor " + this.crntContrib.firstName + " " + this.crntContrib.lastName +
         " is already in the list of contributors";
       this.disableAdd = false;
-      this.disableClear = false;
       this.disableRemove = false;
       return;
     }
@@ -1154,7 +1135,6 @@ export class PersonnelComponent implements OnDestroy {
     this.refreshOrcidWarning();
 
     this.errorMessage = "";
-    this.disableClear = false;
     this.disableRemove = false;
 
     this.resetContributorFields();
@@ -1314,23 +1294,9 @@ export class PersonnelComponent implements OnDestroy {
     this.errorMessage = "";
 
     if (this.dmpContributors.length === 0) {
-      this.disableClear = true;
       this.disableRemove = true;
     }
   }
-
-  resetPersonnelForm(){
-    this.nistContribRole = "";
-    this.externalContributor.firstName = "";
-    this.externalContributor.lastName = "";
-    this.externalContributor.orcid = "";
-    this.externalContributor.institution = "";
-    this.externalContributor.emailAddress = "";
-    this.contributorRadioSel = "";
-    this.clearTable();
-    this.org_clearTable();
-  }
-
 
   /**
    * This function gets all NIST organizations by querying people service
@@ -1411,20 +1377,7 @@ export class PersonnelComponent implements OnDestroy {
     this.syncOrganizationsToForm();
 
     if (this.dmpOrganizations.length === 0) {
-      this.org_disableClear = true;
       this.org_disableRemove = true;
-    }
-  }
-
-  org_clearTable(){
-    const result = confirmDialog("Are you sure you want to delete all organizations for this DMP?");
-
-    if (result) {
-      this.dmpOrganizations = [];
-      this.personnelForm.patchValue({organizations:[]});      
-      this.org_disableAdd=true;
-      this.org_disableClear=true;
-      this.org_disableRemove=true;
     }
   }
 
@@ -1465,7 +1418,6 @@ export class PersonnelComponent implements OnDestroy {
 
     this.org_errorMessage = "";
     this.org_disableAdd = true;
-    this.org_disableClear = false;
     this.org_disableRemove = false;
 
     // Reset the field so it's clear multiple orgs can be added
@@ -1485,7 +1437,6 @@ export class PersonnelComponent implements OnDestroy {
     this.syncOrganizationsToForm();
 
     if (this.dmpOrganizations.length === 0) {
-      this.org_disableClear = true;
       this.org_disableRemove = true;
     }
   }

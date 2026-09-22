@@ -56,7 +56,6 @@ export class TechnicalRequirementsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   disableAdd:boolean = true;
-  disableClear:boolean = true;
   disableRemove:boolean = true;
 
   instr_displayedColumns: string[] = INSTR_COL_SCHEMA.map((col) => col.key);
@@ -131,7 +130,6 @@ export class TechnicalRequirementsComponent implements OnInit, OnDestroy {
           name:             anInstrument.name,
           description_url:  anInstrument.description_url,
         });
-        this.disableClear=false;
         this.disableRemove=false;
       }
     );
@@ -428,7 +426,6 @@ export class TechnicalRequirementsComponent implements OnInit, OnDestroy {
     this.syncInstrumentsToForm();
 
     if (this.dmpInstrumentsTbl.length === 0) {
-      this.disableClear = true;
       this.disableRemove = true;
     }
   }
@@ -445,7 +442,6 @@ export class TechnicalRequirementsComponent implements OnInit, OnDestroy {
     this.syncInstrumentsToForm();
 
     if (this.dmpInstrumentsTbl.length === 0) {
-      this.disableClear = true;
       this.disableRemove = true;
     }
   }
@@ -453,7 +449,6 @@ export class TechnicalRequirementsComponent implements OnInit, OnDestroy {
   addRow(){
     // Disable buttons while the user is inputing new row
     this.disableAdd=true;
-    this.disableClear=true;
     this.disableRemove=true;
 
     this.crntInstrName = this.dmpInstrument.name;
@@ -494,7 +489,6 @@ export class TechnicalRequirementsComponent implements OnInit, OnDestroy {
       row.isEdit = false;
     }
 
-    this.disableClear = false;
     this.disableRemove = false;
 
     // Rebuild the form from the table (single source of truth).
@@ -510,21 +504,6 @@ export class TechnicalRequirementsComponent implements OnInit, OnDestroy {
     this.dmpInstrument = {name:"", description_url:""};
   }
 
-  clearTable(){
-    const result = confirmDialog("Are you sure you want to delete all instrument(s) for this DMP?");
-
-    if (result) {
-      this.dmpInstrumentsTbl = []
-      this.resetTable();
-      this.disableClear=true;
-      this.disableRemove=true;
-    }
-  }
-
-  resetTable() {
-    this.syncInstrumentsToForm(); // dmpInstrumentsTbl is the source; emits [] when empty
-  }
-
   checkInstrData(e:any){
     // Check if both Instrument Name and Description/url have been filled out
     if (this.dmpInstrument.name !== '' && this.dmpInstrument.description_url !== ''){
@@ -533,30 +512,6 @@ export class TechnicalRequirementsComponent implements OnInit, OnDestroy {
     else{
       this.disableAdd = true;
     }
-  }
-
-  resetTechnicalRequirements(){
-    this.dataSize = "";
-    this.dataSetSize = "TB";
-    this.setSoftwareDev('no');
-    this.setSoftwareUse('no');
-    this.setDatabaseUse('no');
-    this.setWebsiteDev('no');
-    this.technicalRequirementsForm.patchValue({
-      // all of technicalRequirementsForm needs to be "changed" in order to fire the update event and propagate
-      // changes up to the parent form
-      dataSize:             null,
-      sizeUnit:             "TB",
-      dataSizeDescription:  "",
-      development:          "no",
-      softwareUse:          null,
-      softwareDatabase:     null,
-      softwareWebsite:      null
-    })
-    this.technicalRequirementsForm.patchValue({
-      technicalResources:[]
-    })
-    this.clearTable();
   }
 
   removeReactiveInstruments(keyword: string) {

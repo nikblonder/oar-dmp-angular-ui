@@ -539,11 +539,10 @@ describe('PersonnelComponent', () => {
       expect(component.dmpContributors.length).toBe(2);
     });
 
-    it('removeRow disables Clear/Remove buttons once the table is empty', () => {
+    it('removeRow disables the Remove Selected button once the table is empty', () => {
       jest.spyOn(dmpService, 'confirmDialog').mockReturnValue(true);
       component.dmpContributors.forEach(c => component.removeRow(c.id));
 
-      expect(component.disableClear).toBe(true);
       expect(component.disableRemove).toBe(true);
     });
 
@@ -558,28 +557,19 @@ describe('PersonnelComponent', () => {
       expect(component.dmpContributors[0].firstName).toBe('Grace');
     });
 
-    it('clearTable empties the contributors table and form when confirmed', () => {
+    it('removeSelectedRows disables the Remove Selected button once the table is empty', () => {
       jest.spyOn(dmpService, 'confirmDialog').mockReturnValue(true);
+      component.dmpContributors.forEach(c => (c as any).isSelected = true);
 
-      component.clearTable();
+      component.removeSelectedRows();
 
       expect(component.dmpContributors).toEqual([]);
-      expect(component.personnelForm.value['contributors']).toEqual([]);
-      expect(component.disableClear).toBe(true);
       expect(component.disableRemove).toBe(true);
-    });
-
-    it('clearTable does nothing when cancelled', () => {
-      jest.spyOn(dmpService, 'confirmDialog').mockReturnValue(false);
-
-      component.clearTable();
-
-      expect(component.dmpContributors.length).toBe(2);
     });
   });
 
   // ---------------------------------------------------------------------------
-  // Organizations table: org_addRow / org_removeRow / org_clearTable
+  // Organizations table: org_addRow / org_removeRow
   // ---------------------------------------------------------------------------
 
   describe('organizations table operations', () => {
@@ -601,7 +591,6 @@ describe('PersonnelComponent', () => {
       component.org_addRow();
       expect(component.dmpOrganizations.length).toBe(1);
       expect(component.personnelForm.value['organizations']).toHaveLength(1);
-      expect(component.org_disableClear).toBe(false);
       expect(component.org_disableRemove).toBe(false);
     });
 
@@ -620,18 +609,18 @@ describe('PersonnelComponent', () => {
       component.org_removeRow(id);
 
       expect(component.dmpOrganizations).toEqual([]);
-      expect(component.org_disableClear).toBe(true);
       expect(component.org_disableRemove).toBe(true);
     });
 
-    it('org_clearTable empties organizations when confirmed', () => {
+    it('org_removeSelectedRows removes only rows flagged isSelected and disables Remove Selected when empty', () => {
       jest.spyOn(dmpService, 'confirmDialog').mockReturnValue(true);
       component.org_addRow();
+      (component.dmpOrganizations[0] as any).isSelected = true;
 
-      component.org_clearTable();
+      component.org_removeSelectedRows();
 
       expect(component.dmpOrganizations).toEqual([]);
-      expect(component.personnelForm.value['organizations']).toEqual([]);
+      expect(component.org_disableRemove).toBe(true);
     });
   });
 

@@ -144,15 +144,16 @@
 
     <p *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</p>
 
-    <article class="table-header">
+    <article class="table-header table-header-grouped">
       
       <!-- 
         set button type to 'button' to prevent it from acting like a submit button and triggering
         updateDMP in dmp.services.ts 
       -->
-      <button type="button" class="button-remove-rows" mat-button (click)="removeSelectedRows()" [disabled]="disableRemove">Remove Selected</button>
-      <button type="button" class="button-clear-table" mat-button (click)="clearTable()" [disabled]="disableClear">Clear</button>
-      <button type="button" class="button-add-row" mat-button (click)="addRow()" [disabled]="disableAdd">Add</button>
+      <div class="table-header-btn-group">
+        <button type="button" class="button-remove-rows" mat-button (click)="removeSelectedRows()" [disabled]="disableRemove">Remove Selected</button>
+        <button type="button" class="button-add-row" mat-button (click)="addRow()" [disabled]="disableAdd">Add</button>
+      </div>
     </article>
 
     <div style="overflow-x:auto;">
