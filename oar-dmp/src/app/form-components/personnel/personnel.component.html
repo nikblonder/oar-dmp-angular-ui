@@ -1,5 +1,10 @@
 <div class="dmpSection">
-  <div class="header">Researchers</div>
+  <div class="header">
+    Researchers
+    <span class="header-info-icon-wrap" [matTooltip]="sectionInfo" matTooltipPosition="above">
+      <mat-icon class="header-info-icon">info</mat-icon>
+    </span>
+  </div>
 
   <!-- The role="status" makes it announce to screen readers without stealing focus (appropriate for a non-urgent, after-the-fact notice). 
    The *ngIf on autoUpdateChanges.length means it only renders when there's something to show, and disappears on dismiss. -->

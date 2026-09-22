@@ -76,3 +76,39 @@ label {
     margin-top: 0;
   }
 }
+
+// =============================
+// Section-header info icon/tooltip
+// =============================
+// Each form-component's .header bar gets a small info icon that shows a
+// tooltip on hover, explaining what the section does. Placeholder text for
+// now; the tooltip content comes from each component's own info string so
+// it can be filled in with real guidance later without touching this CSS.
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.header-info-icon-wrap {
+  // Positioned so it doesn't disturb the existing centered header text.
+  position: absolute;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  pointer-events: auto;
+}
+
+.header-info-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+  line-height: 18px;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: help;
+
+  &:hover {
+    color: #ffffff;
+  }
+}

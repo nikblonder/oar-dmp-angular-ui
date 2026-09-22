@@ -208,6 +208,13 @@ export class PersonnelComponent implements OnDestroy {
   /** Cancels any in-flight NIST autoupdate run when the input rebinds. */
   private autoUpdateCancel$ = new Subject<void>();
 
+  // Shown via the info icon next to the section header.
+  sectionInfo: string =
+    "Add everyone involved in this project. Search for NIST staff by name, or add " +
+    "external collaborators manually, then select their role and whether they're the " +
+    "primary contact. Organizations responsible for the DMP are added automatically " +
+    "from the primary contact, or can be added manually below.";
+
   /** Changes applied during the most recent autoupdate run, shown to the user
   *  in a dismissible panel. Cleared on dismiss and at the start of each run. */
   autoUpdateChanges: AutoUpdateChange[] = [];

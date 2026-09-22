@@ -55,6 +55,12 @@ export class TechnicalRequirementsComponent implements OnInit, OnDestroy {
   /** Fires once on destroy; every long-lived subscription pipes takeUntil(this). */
   private destroy$ = new Subject<void>();
 
+  // Shown via the info icon next to the section header.
+  sectionInfo: string =
+    "Estimate the data size this project will generate, indicate whether you're " +
+    "developing software, and list any equipment or instruments needed. Your " +
+    "selections here highlight matching resources in the NIST Resources panel.";
+
   disableAdd:boolean = true;
   disableRemove:boolean = true;
 

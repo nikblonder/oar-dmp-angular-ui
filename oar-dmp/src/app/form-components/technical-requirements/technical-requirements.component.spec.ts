@@ -71,6 +71,11 @@ describe('TechnicalRequirementsComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should expose a non-empty sectionInfo for the header tooltip', () => {
+    expect(component.sectionInfo).toBeTruthy();
+    expect(typeof component.sectionInfo).toBe('string');
+  });
+
   // -------------------------------------------------------------------------
   // Form defaults
   // -------------------------------------------------------------------------
