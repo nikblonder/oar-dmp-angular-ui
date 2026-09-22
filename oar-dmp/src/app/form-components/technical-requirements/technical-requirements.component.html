@@ -129,6 +129,9 @@
     </div>
 
     <div class="sub-category">Instruments needed/used</div>
+    <p class="instrument-instructions">
+      Enter both an instrument name and a description or URL, then click Add.
+    </p>
 
     <b>Instruments used</b><br>
     <div class="dmp-frm-row">
@@ -152,7 +155,17 @@
       -->
       <div class="table-header-btn-group">
         <button type="button" class="button-remove-rows" mat-button (click)="removeSelectedRows()" [disabled]="disableRemove">Remove Selected</button>
-        <button type="button" class="button-add-row" mat-button (click)="addRow()" [disabled]="disableAdd">Add</button>
+
+        <!--
+          The wrapping span carries the tooltip: matTooltip does not fire on a
+          native disabled button (disabled elements don't dispatch mouseenter
+          in most browsers), so the trigger lives on a non-disabled wrapper.
+        -->
+        <span class="add-instrument-tooltip-wrap"
+              [matTooltip]="disableAdd ? addInstrumentHint : ''"
+              matTooltipPosition="above">
+          <button type="button" class="button-add-row" mat-button (click)="addRow()" [disabled]="disableAdd">Add</button>
+        </span>
       </div>
     </article>
 

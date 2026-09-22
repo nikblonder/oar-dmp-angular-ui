@@ -514,6 +514,27 @@ export class TechnicalRequirementsComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Explains why the Add button is currently disabled, naming whichever
+   * field(s) are still empty. Read by both the inline hint next to the
+   * button and its tooltip, so the two stay in sync by construction.
+   */
+  get addInstrumentHint(): string {
+    const missingName = !this.dmpInstrument.name;
+    const missingDescription = !this.dmpInstrument.description_url;
+
+    if (missingName && missingDescription) {
+      return 'Enter an instrument name and a description or URL to enable Add';
+    }
+    if (missingName) {
+      return 'Enter an instrument name to enable Add';
+    }
+    if (missingDescription) {
+      return 'Enter a description or URL to enable Add';
+    }
+    return '';
+  }
+
   removeReactiveInstruments(keyword: string) {
 
     this.reactiveInstruments.update(technicalResources => {

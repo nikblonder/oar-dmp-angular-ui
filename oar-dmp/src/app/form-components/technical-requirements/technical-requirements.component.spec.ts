@@ -373,6 +373,50 @@ describe('TechnicalRequirementsComponent', () => {
   });
 
   // -------------------------------------------------------------------------
+  // addInstrumentHint — explains why Add is disabled
+  // -------------------------------------------------------------------------
+  describe('addInstrumentHint', () => {
+    it('names both fields as missing when neither is filled', () => {
+      component.dmpInstrument = { name: '', description_url: '' };
+      expect(component.addInstrumentHint).toBe(
+        'Enter an instrument name and a description or URL to enable Add'
+      );
+    });
+
+    it('names only the name as missing when description/URL is filled', () => {
+      component.dmpInstrument = { name: '', description_url: 'http://x/scope' };
+      expect(component.addInstrumentHint).toBe('Enter an instrument name to enable Add');
+    });
+
+    it('names only the description/URL as missing when name is filled', () => {
+      component.dmpInstrument = { name: 'Microscope', description_url: '' };
+      expect(component.addInstrumentHint).toBe('Enter a description or URL to enable Add');
+    });
+
+    it('returns an empty string once both fields are filled', () => {
+      component.dmpInstrument = { name: 'Microscope', description_url: 'http://x/scope' };
+      expect(component.addInstrumentHint).toBe('');
+    });
+
+    it('stays in sync with disableAdd as fields are filled in via checkInstrData', () => {
+      component.dmpInstrument = { name: '', description_url: '' };
+      component.checkInstrData({});
+      expect(component.disableAdd).toBe(true);
+      expect(component.addInstrumentHint).not.toBe('');
+
+      component.dmpInstrument = { name: 'Microscope', description_url: '' };
+      component.checkInstrData({});
+      expect(component.disableAdd).toBe(true);
+      expect(component.addInstrumentHint).toBe('Enter a description or URL to enable Add');
+
+      component.dmpInstrument = { name: 'Microscope', description_url: 'http://x/scope' };
+      component.checkInstrData({});
+      expect(component.disableAdd).toBe(false);
+      expect(component.addInstrumentHint).toBe('');
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // Technical resources chips
   // -------------------------------------------------------------------------
   describe('technicalResources chips', () => {
