@@ -66,15 +66,15 @@ export class TechnicalRequirementsComponent implements OnInit, OnDestroy {
   // Shown via the info icon next to the "Technical facilities/resources
   // needed/used" sub-heading.
   facilitiesInfo: string =
-    "List broader facilities or resources this project depends on — for example " +
-    "lab space, compute clusters, or storage systems — rather than individual " +
-    "pieces of equipment. Separate multiple entries with commas or semicolons.";
+    "Larger facilities or shared resources not tied to a specific NIST asset " +
+    "barcode — for example a beamline at Argonne, the CNST Nanofab, or TACC. " +
+    "Separate multiple entries with commas or semicolons.";
 
   // Shown via the info icon next to the "Instruments needed/used" sub-heading.
   instrumentsInfo: string =
-    "List specific pieces of equipment used to collect or generate this project's " +
-    "data — for example a microscope or spectrometer — along with a brief " +
-    "description or a URL to a landing page for each instrument.";
+    "Specific lab equipment with a NIST asset barcode — for example a " +
+    "microscope, scale, or probe station — along with a brief description or " +
+    "a URL to a landing page for each.";
 
   disableAdd:boolean = true;
   disableRemove:boolean = true;
