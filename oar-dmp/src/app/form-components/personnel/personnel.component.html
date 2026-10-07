@@ -75,37 +75,24 @@
           <label for="contributorNIST">NIST Employee / Associate</label>
           <!-- ======================================================= -->        
           <div *ngIf="selectedContributor('NIST')" class="contributor-box">
-            <table>
-              <!-- <tr>
-                <td class="cell-top">Primary NIST Contact<span class="requiredField" >*</span></td>
-                <td class="cell-top">
-                  <input type="radio" id="primCntcY" name="primCntc" value="yes" [formControl]="personnelForm.controls['primaryNistContact']">
-                  <label for="primCntcY">Yes</label>
+            <!-- <div class="nist-contrib-row">
+              <div class="nist-contrib-label cell-top">Primary NIST Contact<span class="requiredField" >*</span></div>
+              <div class="nist-contrib-field cell-top">
+                <input type="radio" id="primCntcY" name="primCntc" value="yes" [formControl]="personnelForm.controls['primaryNistContact']">
+                <label for="primCntcY">Yes</label>
 
-                  <input type="radio" id="primCntcN" name="primCntc" value="no" [checked]='true' [formControl]="personnelForm.controls['primaryNistContact']">
-                  <label for="primCntcN">No</label>
-                </td>
-              </tr> -->
-              <tr>
-                <td>Primary Contact</td>
-                <td>
-                  <select
-                    name="primaryContact"
-                    [(ngModel)]="primaryContact"
-                    (change)="selPrimaryContact()"
-                    
-                  >
-                    <option *ngFor="let option of primaryContactOptions" [value]="option.id" >
-                        {{option.value}}
-                    </option>
+                <input type="radio" id="primCntcN" name="primCntc" value="no" [checked]='true' [formControl]="personnelForm.controls['primaryNistContact']">
+                <label for="primCntcN">No</label>
+              </div>
+            </div> -->
 
-                  </select>
-                </td>
-              </tr>
-              <tr>
-                <td class="cell-top">Contributor<span class="requiredField" >*</span></td>
-                <td>
-                  <mat-form-field class="example-full-width" appearance="fill" style="width:300px;">
+            <div class="nist-contrib-grid">
+
+              <!-- Contributor + Primary Contact share a row -->
+              <div class="nist-contrib-row">
+                <div class="nist-contrib-label cell-top">Contributor<span class="requiredField" >*</span></div>
+                <div class="nist-contrib-field">
+                  <mat-form-field class="example-full-width" appearance="fill" >
                     <!-- <mat-label>NIST Contributor</mat-label> -->
                     <input type="text"
                           placeholder="Type to search ..."
@@ -123,16 +110,32 @@
                       </mat-option>
                     </mat-autocomplete>
                   </mat-form-field>
+                </div>
 
-                </td>
-              </tr>
-              <tr>
-                <td class="cell-top">ORCID</td>
-                <td class="cell-top"><input type="text" [(ngModel)]="crntContrib.orcid"></td>
-              </tr>
-              <tr>
-                <td>Role</td>
-                <td>
+                <div class="nist-contrib-label">Primary Contact</div>
+                <div class="nist-contrib-field">
+                  <select
+                    name="primaryContact"
+                    [(ngModel)]="primaryContact"
+                    (change)="selPrimaryContact()"
+                    
+                  >
+                    <option *ngFor="let option of primaryContactOptions" [value]="option.id" >
+                        {{option.value}}
+                    </option>
+
+                  </select>
+                </div>
+              </div>
+
+              <div class="nist-contrib-row">
+                <div class="nist-contrib-label cell-top">ORCID</div>
+                <div class="nist-contrib-field cell-top"><input type="text" [(ngModel)]="crntContrib.orcid"></div>
+              </div>
+
+              <div class="nist-contrib-row">
+                <div class="nist-contrib-label">Role</div>
+                <div class="nist-contrib-field">
                   <select
                     name="nistContribRole"
                     [(ngModel)]="nistContribRole"
@@ -143,10 +146,10 @@
                     </option>
 
                   </select>
-                </td>
-              </tr>
+                </div>
+              </div>
 
-            </table>
+            </div>
           </div>
         </div>
         
@@ -163,30 +166,36 @@
           >
           <label for="contributorExternal">External Collaborator</label>
           <div *ngIf="selectedContributor('External')" class="contributor-box">
-            <table>
-              <tr>
-                <td>First Name<span class="requiredField" >*</span></td>
-                <td><input type="text" [(ngModel)]="externalContributor.firstName"></td>
-              </tr>
-              <tr>
-                <td>Last Name<span class="requiredField" >*</span></td>
-                <td><input type="text" [(ngModel)]="externalContributor.lastName"></td>
-              </tr>
-              <tr>
-                <td>Contributor ORCID</td>
-                <td><input type="text" [(ngModel)]="externalContributor.orcid"></td>
-              </tr>
-              <tr>
-                <td class="description">Institution / Affiliation<span class="requiredField" >*</span></td>
-                <td><input type="text" [(ngModel)]="externalContributor.institution"></td>
-              </tr>
-              <tr>
-                <td>e-mail<span class="requiredField" >*</span></td>
-                <td><input type="text" [(ngModel)]="externalContributor.emailAddress"></td>
-              </tr>
-              <tr>
-                <td>Role</td>
-                <td>
+            <div class="nist-contrib-grid nist-contrib-grid--plain">
+
+              <div class="nist-contrib-row">
+                <div class="nist-contrib-label">First Name<span class="requiredField" >*</span></div>
+                <div class="nist-contrib-field"><input type="text" [(ngModel)]="externalContributor.firstName"></div>
+              </div>
+
+              <div class="nist-contrib-row">
+                <div class="nist-contrib-label">Last Name<span class="requiredField" >*</span></div>
+                <div class="nist-contrib-field"><input type="text" [(ngModel)]="externalContributor.lastName"></div>
+              </div>
+
+              <div class="nist-contrib-row">
+                <div class="nist-contrib-label">Contributor ORCID</div>
+                <div class="nist-contrib-field"><input type="text" [(ngModel)]="externalContributor.orcid"></div>
+              </div>
+
+              <div class="nist-contrib-row">
+                <div class="nist-contrib-label description">Institution / Affiliation<span class="requiredField" >*</span></div>
+                <div class="nist-contrib-field"><input type="text" [(ngModel)]="externalContributor.institution"></div>
+              </div>
+
+              <div class="nist-contrib-row">
+                <div class="nist-contrib-label">e-mail<span class="requiredField" >*</span></div>
+                <div class="nist-contrib-field"><input type="text" [(ngModel)]="externalContributor.emailAddress"></div>
+              </div>
+
+              <div class="nist-contrib-row">
+                <div class="nist-contrib-label">Role</div>
+                <div class="nist-contrib-field">
                   <select
                     name="extContribRole"
                     [(ngModel)]="extContribRole"
@@ -197,10 +206,10 @@
                     </option>
 
                   </select>
-                </td>
-              </tr>
-              
-            </table>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
 

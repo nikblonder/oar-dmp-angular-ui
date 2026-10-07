@@ -20,6 +20,16 @@ td.cell-top{
   max-width: 430px;
 }
 
+// The NIST contributor box now holds a 4-column grid row (Contributor +
+// Primary Contact side by side), which is wider than the External
+// Collaborator box's 430px. Override max-width just for this box so the
+// border fully encloses the grid instead of letting Primary Contact spill
+// outside it.
+.contributor-box:has(.nist-contrib-grid) {
+  max-width: none;
+  width: fit-content;
+}
+
 .mdc-data-table__cell, .mdc-data-table__header-cell{
   padding: 0 0 0 5px;
 }
@@ -105,4 +115,99 @@ td.cell-top{
     font-weight: 500;
     &:hover { background-color: #92400e; }
   }
+}
+
+.nist-contrib-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nist-contrib-row {
+  display: grid;
+  grid-template-columns: 110px 320px 110px 140px;
+  column-gap: 12px;
+  // Align to the TOP of each cell instead of center. mat-form-field carries
+  // an invisible hint/subscript area below its input (reserved for error
+  // messages) that makes its total box taller than a plain label or select,
+  // so center-alignment was visually dropping the label/dropdown below the
+  // Contributor input's actual text line. Top-alignment plus a small
+  // top-padding on the plain cells (below) lines everything up instead.
+  align-items: start;
+  margin-bottom: 4px;
+}
+
+.nist-contrib-label {
+  font-weight: normal;
+  white-space: nowrap;
+  // Nudges the label down to match the vertical center of the mat-form-field's
+  // input text (mat-form-field's own internal padding sits the input text
+  // lower than a plain top-aligned label would be).
+  padding-top: 0px;
+}
+
+.nist-contrib-field {
+  min-width: 0;
+  overflow: visible;
+}
+
+// The Contributor mat-form-field itself should NOT get the offset — it's
+// the reference everything else aligns to.
+.nist-contrib-field mat-form-field {
+  width: 320px;      // match ORCID's rendered width exactly (see below)
+}
+
+// ORCID/Role/Primary Contact plain inputs and selects pick up width:100%
+// from the global `input[type=text] { width: 100% }` rule, which stretches
+// them across the full grid row. Constrain to their own track, AND make
+// ORCID match the Contributor field's ACTUAL rendered width (320px content
+// box minus mat-form-field's own ~2px internal border/padding reduces its
+// visible input narrower than a plain 320px-wide text input, hence the
+// box-sizing + width tweak below so the two line up pixel-for-pixel).
+.nist-contrib-field input[type="text"] {
+  box-sizing: border-box;
+  width: 320px;
+  max-width: 320px;
+}
+
+.nist-contrib-field select {
+  width: auto;
+  max-width: 140px;
+}
+
+// Angular Material's MDC-based "fill" appearance applies internal padding to
+// the text field wrapper and its infix (the area directly around the input),
+// which is Material-theme styling, not something this component's SCSS
+// controls directly, since it lives inside the mat-form-field's own encapsulated
+// view. ::ng-deep pierces that encapsulation (already used this way elsewhere
+// in the project — see form-table.scss's ::ng-deep .mat-form-field-infix rule).
+//
+// Scoped to .nist-contrib-field so it only affects the Contributor
+// autocomplete here, not every mat-form-field across the app.
+::ng-deep .nist-contrib-field .mdc-text-field {
+  padding: 0 !important;
+}
+
+::ng-deep .nist-contrib-field .mat-mdc-form-field-infix {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+// External Collaborator fields reuse .nist-contrib-grid/-row/-label/-field
+// for identical box styling and column widths, but every row here is a
+// plain label + plain field (no mat-form-field reference point), so the
+// 18px padding-top/margin-top used to align NIST's Contributor/ORCID/Role/
+// Primary Contact rows doesn't apply — this modifier resets it back to 0
+// for a natural, evenly-spaced plain-field layout.
+.nist-contrib-grid--plain .nist-contrib-label {
+  padding-top: 0;
+}
+
+.nist-contrib-grid--plain .nist-contrib-field input[type="text"],
+.nist-contrib-grid--plain .nist-contrib-field select {
+  margin-top: 0;
+}
+
+.nist-contrib-grid--plain .nist-contrib-row {
+  grid-template-columns: 170px 320px;
 }
