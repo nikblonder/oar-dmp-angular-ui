@@ -69,6 +69,7 @@
             id="contributorNIST" 
             name="contributor" 
             value="NIST"
+            [checked]="selectedContributor('NIST')"
             (click)="setContributor('NIST')"
             (change)="onContributorChange($event.target)"
           >

@@ -325,6 +325,11 @@ export class PersonnelComponent implements OnDestroy {
     this.getNistOrganizations();
     this.peopleUpdates.updateNISTContrib$.next({ numUpdates: this.contribsUpdated, isUpdated: false });
     this.peopleUpdates.updateOUs$.next({ numUpdates: this.OUsUpdated, isUpdated: false });
+
+    // Default the contributor-type selection to NIST Employee / Associate so
+    // the radio button and its form appear pre-selected on load, rather than
+    // requiring the user to click it first.
+    this.setContributor('NIST');
   }
 
   // dmp_contributor / nistOrganization hold a typed string while the user is
