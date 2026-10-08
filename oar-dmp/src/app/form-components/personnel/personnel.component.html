@@ -52,9 +52,6 @@
   </div>
   
   <div class="dmp-frm-container">
-   
-    <p><span class="requiredField" >*</span> Required fields to add a contributor</p>
-
     <div class="dmp-frm-row">
       <div class="col-20">
         Add a Contributor
@@ -91,7 +88,12 @@
 
               <!-- Contributor + Primary Contact share a row -->
               <div class="nist-contrib-row">
-                <div class="nist-contrib-label cell-top">Contributor<span class="requiredField" >*</span></div>
+                <div class="nist-contrib-label cell-top">
+                  Contributor
+                  <span class="inline-info-icon-wrap" matTooltip="Search for NIST staff by first or last name, then select the person from the search suggestion list." matTooltipPosition="above">
+                    <mat-icon class="header-inline-info-icon">info</mat-icon>
+                  </span>
+                </div>
                 <div class="nist-contrib-field">
                   <mat-form-field class="example-full-width" appearance="fill" >
                     <!-- <mat-label>NIST Contributor</mat-label> -->
@@ -113,7 +115,12 @@
                   </mat-form-field>
                 </div>
 
-                <div class="nist-contrib-label">Primary Contact</div>
+                <div class="nist-contrib-label">
+                  Primary Contact
+                  <span class="inline-info-icon-wrap" matTooltip="At least one NIST contributor must be marked as a primary contact. A primary contact's OU is automatically added as a responsible OU for this DMP. A DMP record can have more than one primary contact." matTooltipPosition="above">
+                    <mat-icon class="header-inline-info-icon">info</mat-icon>
+                  </span>
+                </div>
                 <div class="nist-contrib-field">
                   <select
                     name="primaryContact"
@@ -130,12 +137,22 @@
               </div>
 
               <div class="nist-contrib-row">
-                <div class="nist-contrib-label cell-top">ORCID</div>
+                <div class="nist-contrib-label cell-top">
+                  ORCID
+                  <span class="inline-info-icon-wrap" matTooltip="ORCID is added automatically from the NIST People database when one is on file for the selected NIST contributor. If none is on file, you can enter one manually if you know this contributor has an ORCID. An ORCID is required if this DMP results in a publication." matTooltipPosition="above">
+                    <mat-icon class="header-inline-info-icon">info</mat-icon>
+                  </span>
+                </div>
                 <div class="nist-contrib-field cell-top"><input type="text" [(ngModel)]="crntContrib.orcid"></div>
               </div>
 
               <div class="nist-contrib-row">
-                <div class="nist-contrib-label">Role</div>
+                <div class="nist-contrib-label">
+                  Role
+                  <span class="inline-info-icon-wrap" matTooltip="The contributor's role on this DMP. This field is optional and, unlike Primary Contact, does not affect which OUs are considered responsible for the DMP." matTooltipPosition="above">
+                    <mat-icon class="header-inline-info-icon">info</mat-icon>
+                  </span>
+                </div>
                 <div class="nist-contrib-field">
                   <select
                     name="nistContribRole"
@@ -167,6 +184,7 @@
           >
           <label for="contributorExternal">External Collaborator</label>
           <div *ngIf="selectedContributor('External')" class="contributor-box">
+            <p><span class="requiredField" >*</span> Required fields to add external contributor</p>
             <div class="nist-contrib-grid nist-contrib-grid--plain">
 
               <div class="nist-contrib-row">
