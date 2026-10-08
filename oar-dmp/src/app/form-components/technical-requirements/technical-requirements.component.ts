@@ -33,7 +33,7 @@ const INSTR_COL_SCHEMA = [
   {
     key: 'description_url',
     type: 'text',
-    label: 'Description / URL Landing Page',
+    label: 'Instrument Description or URL Landing Page',
   },
   // Edit button column
   {

@@ -265,7 +265,7 @@ label {
 // --- Modifier: --instrument ---
 // For Technical Requirements' Instrument Name/Description fields: both
 // labels are long ("Instrument Name or Barcode or Property Number:",
-// "Instrument Description / URL Landing Page:"), and even a wide label
+// "Instrument Description or URL Landing Page:"), and even a wide label
 // column looked cramped in practice. Stack label above input instead of
 // side-by-side columns — overrides field-grid-row's grid entirely with a
 // single-column block layout.
