@@ -150,6 +150,14 @@ const ORG_COL_SCHEMA = [
     type: 'isSelected',
     label: '',
   },
+  // Edit button column — moved to directly follow the checkbox column, matching
+  // the Contributors table's layout (CONTRIB_COL_SCHEMA) for a consistent
+  // column order across all three tables in this form.
+  {
+    key: 'isEdit',
+    type: 'isEdit',
+    label: '',
+  },
   {
     key: 'groupName',
     type: 'text',
@@ -164,12 +172,6 @@ const ORG_COL_SCHEMA = [
     key: 'ouName',
     type: 'text',
     label: 'OU Name',
-  },
-  // Edit button column
-  {
-    key: 'isEdit',
-    type: 'isEdit',
-    label: '',
   },
 ]
 

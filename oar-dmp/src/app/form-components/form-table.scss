@@ -102,3 +102,119 @@ $button_red: #B20000;
   font-size:large !important;
   color: rgb(20, 67, 220)!important;
 }
+
+// =============================
+// Explicit column widths (Contributors, Organizations, Instruments tables)
+// =============================
+// mat-table doesn't size columns from matColumnDef — Angular Material
+// generates a .mat-column-{key} class on every header/body cell based on
+// the column's `key` in each component's *_COL_SCHEMA array.
+//
+// IMPORTANT: max-width/min-width are NOT part of the CSS fixed-table-layout
+// column-sizing algorithm, even with !important. Testing confirmed browsers
+// accept and store max-width as a computed property but never consult it
+// when determining column widths under table-layout: fixed — only the
+// `width` property (or an explicit <col> element) is used for that.
+//
+// What actually governs column width here: under table-layout: fixed, if
+// the SUM of all declared column widths is less than the table's own
+// rendered width, the browser redistributes the surplus PROPORTIONALLY
+// across every column, including ones with an explicit width. Using
+// percentages that sum to exactly 100% for each table removes that
+// ambiguity entirely — there is no leftover space to redistribute.
+.contribTbl,
+#dmpOrganizations,
+table.mat-elevation-z8 {
+  table-layout: fixed;
+  width: 100%;
+}
+
+// --- Shared columns across all three tables ---
+.mat-column-isSelected {
+  width: 5%;
+}
+.mat-column-isEdit {
+  width: 12%;
+}
+
+// --- Contributors table (personnel.component - CONTRIB_COL_SCHEMA) ---
+// isSelected(5) + isEdit(12) + these 8 columns sum to 100%.
+.mat-column-firstName {
+  width: 10%;
+}
+.mat-column-lastName {
+  width: 10%;
+}
+.mat-column-primary_contact {
+  width: 9%;
+}
+.mat-column-institution {
+  width: 9%;
+}
+.mat-column-groupNumber {
+  width: 8%;
+}
+.mat-column-role {
+  width: 10%;
+}
+.mat-column-emailAddress {
+  width: 14%;
+}
+.mat-column-orcid {
+  width: 13%;
+}
+
+// --- Organizations table (personnel.component - ORG_COL_SCHEMA) ---
+// isSelected(5) + isEdit(12) + these 3 columns sum to 100%.
+// Note: groupName/divisionName/ouName keys are also used elsewhere; these
+// rules only ever apply within this table's own column set.
+.mat-column-groupName {
+  width: 27.67%;
+}
+.mat-column-divisionName {
+  width: 27.67%;
+}
+.mat-column-ouName {
+  width: 27.66%;
+}
+
+// --- Instruments table (technical-requirements.component - INSTR_COL_SCHEMA) ---
+// isSelected(5) + isEdit(12) + these 2 columns sum to 100%.
+.mat-column-name {
+  width: 23%;
+}
+.mat-column-description_url {
+  width: 60%;
+}
+
+// =============================
+// Edit/Delete button layout within the isEdit column
+// =============================
+// This app needs to support tablet/touch devices, so button touch-target
+// padding (.mat-mdc-button-touch-target) is left at Material's default
+// accessible size. Only the button's internal label padding/min-width is
+// trimmed so Edit + Delete can sit compactly side by side.
+.btn-edit {
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+::ng-deep .btn-edit button.mat-mdc-button {
+  min-width: 0 !important;
+  padding: 0 8px !important;
+}
+
+// The Delete button's red text (.button-remove, defined earlier in this
+// file) stopped rendering after the width/layout refactor above. Material's
+// own button theming sets label text color via CSS custom properties on
+// .mat-unthemed/.mdc-button, which can outrank a plain-specificity
+// .button-remove { color: $button_red; } rule. Re-assert it explicitly here
+// so Delete's red color always wins regardless of Material's internal
+// theming.
+::ng-deep .btn-edit button.button-remove {
+  color: $button_red !important;
+}

@@ -25,21 +25,23 @@ const INSTR_COL_SCHEMA = [
     type: 'isSelected',
     label: '',
   },
-  {
-    key: 'name',
-    type: 'text',
-    label: 'Instrument Name or Barcode or Property Number',
-  },
-  {
-    key: 'description_url',
-    type: 'text',
-    label: 'Instrument Description or URL Landing Page',
-  },
-  // Edit button column
+  // Edit button column — moved to directly follow the checkbox column, matching
+  // the Contributors table's layout (CONTRIB_COL_SCHEMA) for a consistent
+  // column order across all three tables in this form.
   {
     key: 'isEdit',
     type: 'isEdit',
     label: '',
+  },
+  {
+    key: 'name',
+    type: 'text',
+    label: 'Instrument Name',
+  },
+  {
+    key: 'description_url',
+    type: 'text',
+    label: 'Description / URL Landing Page',
   },
 ]
 
