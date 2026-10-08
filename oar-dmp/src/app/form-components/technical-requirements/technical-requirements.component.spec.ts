@@ -376,58 +376,57 @@ describe('TechnicalRequirementsComponent', () => {
       expect(component.disableRemove).toBe(true);
     });
 
-    it('checkInstrData enables Add only when both fields are filled', () => {
-      component.dmpInstrument = { name: 'X', description_url: '' };
-      component.checkInstrData({});
-      expect(component.disableAdd).toBe(true);
-
-      component.dmpInstrument = { name: 'X', description_url: 'Y' };
-      component.checkInstrData({});
-      expect(component.disableAdd).toBe(false);
-    });
   });
 
-  // -------------------------------------------------------------------------
-  // addInstrumentHint — explains why Add is disabled
-  // -------------------------------------------------------------------------
-  describe('addInstrumentHint', () => {
-    it('names both fields as missing when neither is filled', () => {
-      component.dmpInstrument = { name: '', description_url: '' };
-      expect(component.addInstrumentHint).toBe(
-        'Enter an instrument name and a description or URL to enable Add'
-      );
-    });
-
-    it('names only the name as missing when description/URL is filled', () => {
+  describe('addRow — required field validation', () => {
+    it('shows an error and does not add a row when the name is empty', () => {
       component.dmpInstrument = { name: '', description_url: 'http://x/scope' };
-      expect(component.addInstrumentHint).toBe('Enter an instrument name to enable Add');
+      component.addRow();
+
+      expect(component.dmpInstrumentsTbl.length).toBe(0);
+      expect(component.errorMessage).toContain('Name or Barcode or Property Number');
     });
 
-    it('names only the description/URL as missing when name is filled', () => {
+    it('shows an error and does not add a row when the description/URL is empty', () => {
       component.dmpInstrument = { name: 'Microscope', description_url: '' };
-      expect(component.addInstrumentHint).toBe('Enter a description or URL to enable Add');
+      component.addRow();
+
+      expect(component.dmpInstrumentsTbl.length).toBe(0);
+      expect(component.errorMessage).toContain('Instrument Description or URL Landing Page');
     });
 
-    it('returns an empty string once both fields are filled', () => {
-      component.dmpInstrument = { name: 'Microscope', description_url: 'http://x/scope' };
-      expect(component.addInstrumentHint).toBe('');
-    });
-
-    it('stays in sync with disableAdd as fields are filled in via checkInstrData', () => {
+    it('shows an error and does not add a row when both fields are empty', () => {
       component.dmpInstrument = { name: '', description_url: '' };
-      component.checkInstrData({});
-      expect(component.disableAdd).toBe(true);
-      expect(component.addInstrumentHint).not.toBe('');
+      component.addRow();
 
-      component.dmpInstrument = { name: 'Microscope', description_url: '' };
-      component.checkInstrData({});
-      expect(component.disableAdd).toBe(true);
-      expect(component.addInstrumentHint).toBe('Enter a description or URL to enable Add');
+      expect(component.dmpInstrumentsTbl.length).toBe(0);
+      // First check (name) wins when both are missing.
+      expect(component.errorMessage).toContain('Name or Barcode or Property Number');
+    });
 
+    it('shows an error when fields contain only whitespace', () => {
+      component.dmpInstrument = { name: '   ', description_url: 'http://x/scope' };
+      component.addRow();
+
+      expect(component.dmpInstrumentsTbl.length).toBe(0);
+      expect(component.errorMessage).toContain('Name or Barcode or Property Number');
+    });
+
+    it('adds the row and clears errorMessage when both fields are valid', () => {
+      component.errorMessage = 'stale error';
       component.dmpInstrument = { name: 'Microscope', description_url: 'http://x/scope' };
-      component.checkInstrData({});
-      expect(component.disableAdd).toBe(false);
-      expect(component.addInstrumentHint).toBe('');
+      component.addRow();
+
+      expect(component.dmpInstrumentsTbl.length).toBe(1);
+      expect(component.errorMessage).toBe('');
+    });
+
+    it('trims leading/trailing whitespace from both fields before adding', () => {
+      component.dmpInstrument = { name: '  Microscope  ', description_url: '  http://x/scope  ' };
+      component.addRow();
+
+      expect(component.dmpInstrumentsTbl[0].name).toBe('Microscope');
+      expect(component.dmpInstrumentsTbl[0].description_url).toBe('http://x/scope');
     });
   });
 

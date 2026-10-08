@@ -117,31 +117,30 @@
         <mat-icon class="subheader-info-icon">info</mat-icon>
       </span>
     </div>
-    <p class="instrument-instructions">
-      Enter both an instrument name and a description or URL, then click Add.
-    </p>
 
-    <div class="dmp-frm-row">
+    <!-- one time case scenario: add 20px padding here to match padding used in other places used by main header sections -->
+    <div class="dmp-frm-row" style="padding-top: 20px;">
       <div class="col-20">
         Instruments used
       </div>
       <div class="col-80">
         <div class="bordered-field-group">
+          <p><span class="requiredField">*</span> Required fields to add an instrument</p>
           <div class="field-grid field-grid--instrument">
             <div class="field-grid-row">
               <div class="field-grid-label">
-                <label for="instrument_name">Instrument Name or Barcode or Property Number:</label>
+                <label for="instrument_name">Instrument Name or Barcode or Property Number:<span class="requiredField">*</span></label>
               </div>
               <div class="field-grid-field">
-                <input type="text" [(ngModel)]="dmpInstrument.name" (input)="checkInstrData($event)" id="instrument_name" name="instrument_name" required minlength="4" size="10" class="instrument-field--name" />
+                <input type="text" [(ngModel)]="dmpInstrument.name" id="instrument_name" name="instrument_name" required minlength="4" size="10" class="instrument-field--name" />
               </div>
             </div>
             <div class="field-grid-row">
               <div class="field-grid-label">
-                <label for="instrument_url">Instrument Description or URL Landing Page:</label>
+                <label for="instrument_url">Instrument Description or URL Landing Page:<span class="requiredField">*</span></label>
               </div>
               <div class="field-grid-field">
-                <input type="text" [(ngModel)]="dmpInstrument.description_url" (input)="checkInstrData($event)" id="instrument_url" name="instrument_url" required minlength="4" size="10" class="instrument-field--description" />
+                <input type="text" [(ngModel)]="dmpInstrument.description_url" id="instrument_url" name="instrument_url" required minlength="4" size="10" class="instrument-field--description" />
               </div>
             </div>
           </div>
@@ -159,17 +158,7 @@
       -->
       <div class="table-header-btn-group">
         <button type="button" class="button-remove-rows" mat-button (click)="removeSelectedRows()" [disabled]="disableRemove">Remove Selected</button>
-
-        <!--
-          The wrapping span carries the tooltip: matTooltip does not fire on a
-          native disabled button (disabled elements don't dispatch mouseenter
-          in most browsers), so the trigger lives on a non-disabled wrapper.
-        -->
-        <span class="add-instrument-tooltip-wrap"
-              [matTooltip]="disableAdd ? addInstrumentHint : ''"
-              matTooltipPosition="above">
-          <button type="button" class="button-add-row" mat-button (click)="addRow()" [disabled]="disableAdd">Add</button>
-        </span>
+        <button type="button" class="button-add-row" mat-button (click)="addRow()">Add</button>
       </div>
     </article>
 

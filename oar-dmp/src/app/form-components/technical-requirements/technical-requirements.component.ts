@@ -76,7 +76,6 @@ export class TechnicalRequirementsComponent implements OnInit, OnDestroy {
     "microscope, scale, or probe station — along with a brief description or " +
     "a URL to a landing page for each.";
 
-  disableAdd:boolean = true;
   disableRemove:boolean = true;
 
   instr_displayedColumns: string[] = INSTR_COL_SCHEMA.map((col) => col.key);
@@ -468,9 +467,16 @@ export class TechnicalRequirementsComponent implements OnInit, OnDestroy {
   }
 
   addRow(){
-    // Disable buttons while the user is inputing new row
-    this.disableAdd=true;
-    this.disableRemove=true;
+    // Validate required fields before adding — mirrors the External
+    // Collaborator pattern (validateExternalContributorInput), which checks
+    // all required fields up front and bails out with a specific
+    // errorMessage on the first one that's missing, rather than relying on
+    // the Add button's disabled state to prevent incomplete submissions.
+    if (!this.validateInstrumentInput()) {
+      return;
+    }
+
+    this.errorMessage = "";
 
     this.crntInstrName = this.dmpInstrument.name;
     this.crntInstrURL = this.dmpInstrument.description_url
@@ -523,37 +529,6 @@ export class TechnicalRequirementsComponent implements OnInit, OnDestroy {
     this.errorMessage = "";
 
     this.dmpInstrument = {name:"", description_url:""};
-  }
-
-  checkInstrData(e:any){
-    // Check if both Instrument Name and Description/url have been filled out
-    if (this.dmpInstrument.name !== '' && this.dmpInstrument.description_url !== ''){
-      this.disableAdd = false;
-    }
-    else{
-      this.disableAdd = true;
-    }
-  }
-
-  /**
-   * Explains why the Add button is currently disabled, naming whichever
-   * field(s) are still empty. Read by both the inline hint next to the
-   * button and its tooltip, so the two stay in sync by construction.
-   */
-  get addInstrumentHint(): string {
-    const missingName = !this.dmpInstrument.name;
-    const missingDescription = !this.dmpInstrument.description_url;
-
-    if (missingName && missingDescription) {
-      return 'Enter an instrument name and a description or URL to enable Add';
-    }
-    if (missingName) {
-      return 'Enter an instrument name to enable Add';
-    }
-    if (missingDescription) {
-      return 'Enter a description or URL to enable Add';
-    }
-    return '';
   }
 
   removeReactiveInstruments(keyword: string) {
@@ -642,5 +617,33 @@ export class TechnicalRequirementsComponent implements OnInit, OnDestroy {
       description_url: r.description_url,
     }));
     this.technicalRequirementsForm.patchValue({ instruments });
+  }
+
+  /**
+   * Validates that both required instrument fields are populated before
+   * allowing the instrument to be added. Mirrors
+   * PersonnelComponent.validateExternalContributorInput's pattern: trims
+   * each value, sets a specific errorMessage per missing field, and returns
+   * false on the first failure so addRow() can bail out early.
+   */
+  private validateInstrumentInput(): boolean {
+    const name = (this.dmpInstrument.name || "").trim();
+    const descriptionUrl = (this.dmpInstrument.description_url || "").trim();
+
+    if (!name.length) {
+      this.errorMessage = "Missing or invalid instrument Name or Barcode or Property Number";
+      return false;
+    }
+
+    if (!descriptionUrl.length) {
+      this.errorMessage = "Missing or invalid instrument Instrument Description or URL Landing Page";
+      return false;
+    }
+
+    // Keep the trimmed values so leading/trailing whitespace doesn't get saved.
+    this.dmpInstrument.name = name;
+    this.dmpInstrument.description_url = descriptionUrl;
+
+    return true;
   }
 }
