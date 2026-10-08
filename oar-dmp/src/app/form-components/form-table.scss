@@ -134,7 +134,7 @@ table.mat-elevation-z8 {
   width: 5%;
 }
 .mat-column-isEdit {
-  width: 12%;
+  width: 8%;
 }
 
 // --- Contributors table (personnel.component - CONTRIB_COL_SCHEMA) ---
@@ -161,7 +161,7 @@ table.mat-elevation-z8 {
   width: 14%;
 }
 .mat-column-orcid {
-  width: 13%;
+  width: 17%;
 }
 
 // --- Organizations table (personnel.component - ORG_COL_SCHEMA) ---
@@ -169,13 +169,13 @@ table.mat-elevation-z8 {
 // Note: groupName/divisionName/ouName keys are also used elsewhere; these
 // rules only ever apply within this table's own column set.
 .mat-column-groupName {
-  width: 27.67%;
+  width: 29%;
 }
 .mat-column-divisionName {
-  width: 27.67%;
+  width: 29%;
 }
 .mat-column-ouName {
-  width: 27.66%;
+  width: 29%;
 }
 
 // --- Instruments table (technical-requirements.component - INSTR_COL_SCHEMA) ---
@@ -184,7 +184,7 @@ table.mat-elevation-z8 {
   width: 23%;
 }
 .mat-column-description_url {
-  width: 60%;
+  width: 64%;
 }
 
 // =============================
@@ -195,9 +195,9 @@ table.mat-elevation-z8 {
 // accessible size. Only the button's internal label padding/min-width is
 // trimmed so Edit + Delete can sit compactly side by side.
 .btn-edit {
-  text-align: right;
+  text-align: left;
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   align-items: center;
   gap: 4px;
   width: 100%;
