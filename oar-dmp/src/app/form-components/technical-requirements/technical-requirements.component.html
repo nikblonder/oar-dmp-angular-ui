@@ -121,15 +121,31 @@
       Enter both an instrument name and a description or URL, then click Add.
     </p>
 
-    <b>Instruments used</b><br>
     <div class="dmp-frm-row">
-      <div class="dmp-col-3">        
-        Instrument Name:<br>
-        <input type="text" [(ngModel)]="dmpInstrument.name" (input)="checkInstrData($event)" id="instrument_name" name="instrument_name" required minlength="4"  size="10" /><br>
+      <div class="col-20">
+        Instruments used
       </div>
-      <div class="dmp-col-9">
-        Instrument Description / URL Landing Page:<br>
-        <input type="text" [(ngModel)]="dmpInstrument.description_url" (input)="checkInstrData($event)" id="instrument_url" name="instrument_url" required minlength="4"  size="10" /><br>  
+      <div class="col-80">
+        <div class="bordered-field-group">
+          <div class="field-grid field-grid--instrument">
+            <div class="field-grid-row">
+              <div class="field-grid-label">
+                <label for="instrument_name">Instrument Name or Barcode or Property Number:</label>
+              </div>
+              <div class="field-grid-field">
+                <input type="text" [(ngModel)]="dmpInstrument.name" (input)="checkInstrData($event)" id="instrument_name" name="instrument_name" required minlength="4" size="10" class="instrument-field--name" />
+              </div>
+            </div>
+            <div class="field-grid-row">
+              <div class="field-grid-label">
+                <label for="instrument_url">Instrument Description or URL Landing Page:</label>
+              </div>
+              <div class="field-grid-field">
+                <input type="text" [(ngModel)]="dmpInstrument.description_url" (input)="checkInstrData($event)" id="instrument_url" name="instrument_url" required minlength="4" size="10" class="instrument-field--description" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 

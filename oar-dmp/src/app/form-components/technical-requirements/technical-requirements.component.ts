@@ -28,7 +28,7 @@ const INSTR_COL_SCHEMA = [
   {
     key: 'name',
     type: 'text',
-    label: 'Instrument Name',
+    label: 'Instrument Name or Barcode or Property Number',
   },
   {
     key: 'description_url',
