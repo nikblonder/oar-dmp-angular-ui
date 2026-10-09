@@ -110,81 +110,120 @@ $button_red: #B20000;
 // generates a .mat-column-{key} class on every header/body cell based on
 // the column's `key` in each component's *_COL_SCHEMA array.
 //
-// IMPORTANT: max-width/min-width are NOT part of the CSS fixed-table-layout
-// column-sizing algorithm, even with !important. Testing confirmed browsers
-// accept and store max-width as a computed property but never consult it
-// when determining column widths under table-layout: fixed — only the
-// `width` property (or an explicit <col> element) is used for that.
+// RESPONSIVE STRATEGY: percentage widths alone cause columns (and their
+// content/buttons) to shrink below a usable size on narrow/tablet screens,
+// leading to truncated text and overlapping Edit/Delete buttons. The fix:
+// give the table itself a min-width (sum of all columns' own min-widths),
+// and rely on the existing <div style="overflow-x:auto;"> wrapper already
+// present around each table in the HTML to let the user scroll horizontally
+// once the viewport is narrower than that minimum — rather than letting
+// columns/content compress indefinitely.
 //
-// What actually governs column width here: under table-layout: fixed, if
-// the SUM of all declared column widths is less than the table's own
-// rendered width, the browser redistributes the surplus PROPORTIONALLY
-// across every column, including ones with an explicit width. Using
-// percentages that sum to exactly 100% for each table removes that
-// ambiguity entirely — there is no leftover space to redistribute.
+// IMPORTANT: max-width is NOT part of the CSS fixed-table-layout
+// column-sizing algorithm (confirmed via devtools testing), but min-width
+// combined with a min-width on the TABLE itself (not just percentages) is
+// respected — the percentage widths still govern proportional sizing above
+// the minimum, and below it the table simply becomes wider than its
+// container, triggering the scroll wrapper instead of compressing further.
 .contribTbl,
 #dmpOrganizations,
 table.mat-elevation-z8 {
   table-layout: fixed;
   width: 100%;
+  // Sum of all per-column min-widths below for whichever table is widest
+  // (Contributors, at 10 columns). Organizations/Instruments have fewer
+  // columns and so a smaller natural minimum, but sharing one table-wide
+  // min-width is harmless — it just means those tables also won't compress
+  // below a comfortable size, which is fine.
+  min-width: 900px;
 }
 
 // --- Shared columns across all three tables ---
+// isSelected/isEdit use FIXED pixel widths (not percentages), unlike every
+// other column below. Under table-layout: fixed, a column with an explicit
+// absolute width is taken at face value by the column-sizing algorithm and
+// is NOT subject to the proportional redistribution that affects
+// percentage/relative-width columns — this is why percentages caused
+// isEdit to render inconsistently between tables with different column
+// counts (Contributors: 10 columns vs Instruments: 4 columns), even with
+// width and min-width set identically. Fixed pixels sidestep that
+// difference entirely: isSelected/isEdit now render at the exact same
+// pixel width in every table, regardless of how many other columns exist
+// or what percentage they claim.
 .mat-column-isSelected {
-  width: 5%;
+  width: 48px;
 }
 .mat-column-isEdit {
-  width: 8%;
+  width: 140px;
 }
 
 // --- Contributors table (personnel.component - CONTRIB_COL_SCHEMA) ---
-// isSelected(5) + isEdit(12) + these 8 columns sum to 100%.
+// isSelected/isEdit above are now fixed pixels (188px combined), so these 8
+// columns' percentages apply to the table's REMAINING width, not its full
+// width. Percentages below are relative proportions among themselves and
+// don't need to sum to 100 anymore, but keeping them roughly consistent
+// with their prior relative sizing preserves the existing visual balance.
 .mat-column-firstName {
-  width: 10%;
+  width: 11%;
+  min-width: 90px;
 }
 .mat-column-lastName {
-  width: 10%;
+  width: 11%;
+  min-width: 90px;
 }
 .mat-column-primary_contact {
-  width: 9%;
+  width: 10%;
+  min-width: 80px;
 }
 .mat-column-institution {
-  width: 9%;
+  width: 10%;
+  min-width: 80px;
 }
 .mat-column-groupNumber {
-  width: 8%;
+  width: 9%;
+  min-width: 70px;
 }
 .mat-column-role {
-  width: 10%;
+  width: 11%;
+  min-width: 90px;
 }
 .mat-column-emailAddress {
-  width: 14%;
+  width: 16%;
+  min-width: 140px;
 }
 .mat-column-orcid {
-  width: 17%;
+  width: 15%;
+  min-width: 120px;
 }
 
 // --- Organizations table (personnel.component - ORG_COL_SCHEMA) ---
-// isSelected(5) + isEdit(12) + these 3 columns sum to 100%.
 // Note: groupName/divisionName/ouName keys are also used elsewhere; these
-// rules only ever apply within this table's own column set.
+// rules only ever apply within this table's own column set. Percentages
+// apply to the table's width remaining after isSelected/isEdit's fixed
+// 188px.
 .mat-column-groupName {
-  width: 29%;
+  width: 31%;
+  min-width: 160px;
 }
 .mat-column-divisionName {
-  width: 29%;
+  width: 31%;
+  min-width: 160px;
 }
 .mat-column-ouName {
-  width: 29%;
+  width: 31%;
+  min-width: 160px;
 }
 
 // --- Instruments table (technical-requirements.component - INSTR_COL_SCHEMA) ---
-// isSelected(5) + isEdit(12) + these 2 columns sum to 100%.
+// Percentages apply to the table's width remaining after isSelected/isEdit's
+// fixed 188px.
 .mat-column-name {
-  width: 23%;
+  width: 26%;
+  min-width: 160px;
 }
 .mat-column-description_url {
-  width: 64%;
+  width: 68%;
+  min-width: 220px;
 }
 
 // =============================
@@ -193,7 +232,8 @@ table.mat-elevation-z8 {
 // This app needs to support tablet/touch devices, so button touch-target
 // padding (.mat-mdc-button-touch-target) is left at Material's default
 // accessible size. Only the button's internal label padding/min-width is
-// trimmed so Edit + Delete can sit compactly side by side.
+// trimmed so Edit + Delete can sit compactly side by side without wrapping
+// or overlapping, now that the column itself has a guaranteed min-width.
 .btn-edit {
   text-align: left;
   display: flex;
@@ -201,20 +241,15 @@ table.mat-elevation-z8 {
   align-items: center;
   gap: 4px;
   width: 100%;
+  flex-wrap: nowrap; // guard against the two buttons wrapping onto separate lines
 }
 
 ::ng-deep .btn-edit button.mat-mdc-button {
   min-width: 0 !important;
   padding: 0 8px !important;
+  white-space: nowrap; // prevent "Edit"/"Delete" label text itself from wrapping
 }
 
-// The Delete button's red text (.button-remove, defined earlier in this
-// file) stopped rendering after the width/layout refactor above. Material's
-// own button theming sets label text color via CSS custom properties on
-// .mat-unthemed/.mdc-button, which can outrank a plain-specificity
-// .button-remove { color: $button_red; } rule. Re-assert it explicitly here
-// so Delete's red color always wins regardless of Material's internal
-// theming.
 ::ng-deep .btn-edit button.button-remove {
   color: $button_red !important;
 }
