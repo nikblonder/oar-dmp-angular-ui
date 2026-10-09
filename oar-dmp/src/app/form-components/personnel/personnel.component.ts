@@ -84,17 +84,17 @@ const CONTRIB_COL_SCHEMA = [
   {
     key: 'firstName',
     type: 'text',
-    label: 'Name',
+    label: 'First \nName',
   },
   {
     key: 'lastName',
     type: 'text',
-    label: 'Surname',
+    label: 'Last \nName',
   },
   {
     key: 'primary_contact',
     type: 'text',
-    label: 'Primary Contact',
+    label: 'Primary \nContact',
   },
   {
     key: 'institution',

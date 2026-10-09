@@ -172,7 +172,12 @@
           <!-- 
             table headers 
           -->
-          <th mat-header-cell *matHeaderCellDef>  {{ col.label }} </th>
+          <th mat-header-cell *matHeaderCellDef>
+            <!-- Bypass CSS white-space quirks, flexbox wrappers, and Angular encapsulation completely by rendering explicit <br> elements in your HTML template when splitting on \n -->
+            <ng-container *ngFor="let line of col.label.split('\n'); let last = last">
+              {{ line }}<br *ngIf="!last" />
+            </ng-container>
+          </th>
           <!-- 
             table cells 
           -->

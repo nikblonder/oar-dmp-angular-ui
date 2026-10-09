@@ -151,11 +151,12 @@ label {
 .bordered-field-group {
   background-color: #f5f5f5;
   border-style: solid;
-  border-width: 1px;
+  border-width: 0px;
   border-color: #a1a1a1;
   border-radius: 10px;
   padding: 10px;
-  max-width: 430px;
+  // max-width: 430px;
+  background-color: #f1f1f1;
 }
 
 // Boxes containing a 4-column .field-grid (e.g. Contributor + Primary
@@ -266,7 +267,7 @@ label {
 }
 
 .field-grid--plain .field-grid-row {
-  grid-template-columns: 170px 320px;
+  grid-template-columns: 150px 320px;
 }
 
 // --- Modifier: --instrument ---

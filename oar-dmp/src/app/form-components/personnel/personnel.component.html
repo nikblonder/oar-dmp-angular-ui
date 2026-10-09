@@ -259,7 +259,11 @@
             <!-- 
               table headers 
             -->
-            <th mat-header-cell *matHeaderCellDef>  {{ col.label }} </th>
+            <th mat-header-cell *matHeaderCellDef>
+              <ng-container *ngFor="let line of col.label.split('\n'); let last = last">
+                {{ line }}<br *ngIf="!last" />
+              </ng-container>
+            </th>
             <!-- 
               table cells 
             -->

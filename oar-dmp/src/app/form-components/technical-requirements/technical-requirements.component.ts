@@ -36,12 +36,14 @@ const INSTR_COL_SCHEMA = [
   {
     key: 'name',
     type: 'text',
-    label: 'Instrument Name',
+    // added line breaks for headers
+    label: "Instrument Name or \nBarcode or \nProperty Number",
   },
   {
     key: 'description_url',
     type: 'text',
-    label: 'Description / URL Landing Page',
+    // added line breaks for headers
+    label: "Instrument Description or \nURL Landing Page:",
   },
 ]
 
