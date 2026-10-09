@@ -189,6 +189,23 @@ const enum PrimaryContact {
 // Letters (incl. accented), spaces, hyphen, apostrophe, period, comma.
 // Rejects <, >, /, digits, and other control/markup characters.
 const name_regex = /^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\-.,' ]*$/;
+
+// Regex for institution/affiliation names, which routinely
+// contain characters a personal-name regex correctly rejects (digits,
+// ampersands, parentheses, slashes) — e.g. "3M", "Johnson & Johnson",
+// "National Institute of Standards and Technology (NIST)",
+// "University of California/Berkeley". Reusing name_regex for institutions
+// was the root cause of rejecting valid institution names containing
+// numbers.
+//
+// Anchored: the WHOLE value must start with an alphanumeric character
+// (rejects a string that's ONLY punctuation/special characters, e.g. "...",
+// "!!!", "---") and may continue with letters, digits, spaces, and a
+// conservative set of punctuation common in real organization names:
+// hyphen, period, comma, apostrophe, ampersand, parentheses, slash.
+// Still rejects <, >, and other markup/control characters, consistent with
+// the injection-safety intent of name_regex.
+const institution_regex = /^[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9\-.,'&()/ ]*$/;
 // email regex taken from https://emailregex.com/index.html
 const email_regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 
@@ -1165,7 +1182,9 @@ export class PersonnelComponent implements OnDestroy {
     if (name_regex.test(firstName)) {
       this.crntContrib.firstName = firstName;
     } else {
-      this.errorMessage = "Missing or invalid contributor First Name";
+      this.errorMessage = "Missing or invalid contributor First Name. " +
+        "Only letters, spaces, hyphens, apostrophes, and periods are allowed, " +
+        "and it must start with a letter.";
       return false;
     }
 
@@ -1173,13 +1192,21 @@ export class PersonnelComponent implements OnDestroy {
     if (name_regex.test(lastName)) {
       this.crntContrib.lastName = lastName;
     } else {
-      this.errorMessage = "Missing or invalid contributor Last Name";
+      this.errorMessage = "Missing or invalid contributor Last Name. " +
+        "Only letters, spaces, hyphens, apostrophes, and periods are allowed, " +
+        "and it must start with a letter.";
       return false;
     }
 
-    // Institution
-    if (!name_regex.test(institution)) {
-      this.errorMessage = "Missing or invalid contributor Institution / Affiliation";
+    // Institution — uses institution_regex (not name_regex), since
+    // institution names routinely contain digits and punctuation
+    // (ampersands, parentheses, slashes) that a personal-name regex
+    // correctly rejects for First/Last Name but incorrectly rejected here.
+    if (!institution_regex.test(institution)) {
+      this.errorMessage = "Missing or invalid contributor Institution / Affiliation. " +
+        "Letters, numbers, spaces, hyphens, periods, commas, apostrophes, " +
+        "ampersands, parentheses, and slashes are allowed, and it must start " +
+        "with a letter or number.";
       return false;
     }
 
