@@ -313,12 +313,29 @@
                     Done
                   </button>
                 </div>
-      
+
+                <!-- ORG ID: read-only even in edit mode. NIST contributors get this
+                    assigned automatically from the People Service, and external
+                    contributors never have one — there is nothing valid for a user to
+                    type here. -->
+                <span *ngSwitchCase="'readonly'">
+                  {{ element[col.key] }}
+                </span>
+
+                <!-- Role: dropdown instead of free text, using the same contributorRoles
+                    list as the "Add a Contributor" form, so edited roles stay within
+                    the supported set. -->
+                <select *ngSwitchCase="'role-select'" [(ngModel)]="element.role">
+                  <option *ngFor="let roleOption of contributorRoles" [value]="roleOption.value">
+                    {{ roleOption.value }}
+                  </option>
+                </select>
+
                 <!-- default column cell -->
                 <mat-form-field class="form-input" *ngSwitchDefault>
                   <input [type]="col.type" matInput [(ngModel)]="element[col.key]" />
                 </mat-form-field>
-      
+
               </div>
       
             </td>

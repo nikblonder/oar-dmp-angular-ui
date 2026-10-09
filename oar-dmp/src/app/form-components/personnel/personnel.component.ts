@@ -102,13 +102,22 @@ const CONTRIB_COL_SCHEMA = [
     label: 'Institution',
   },
   {
+    // ORG ID is assigned automatically from the NIST People Service for
+    // NIST contributors and is never applicable to external contributors
+    // (who have no ORG ID at all). type: 'readonly' renders this as plain
+    // text in edit mode instead of an editable input, since there is
+    // nothing a user should ever manually type here.
     key: 'groupNumber',
-    type: 'text',
+    type: 'readonly',
     label: 'ORG ID',
   },  
   {
+    // type: 'role-select' renders a <select> populated from the same
+    // contributorRoles list used when adding a contributor, instead of a
+    // free-text input, so edits stay constrained to supported roles
+    // (consistent values, no typos, no unsupported roles).
     key: 'role',
-    type: 'text',
+    type: 'role-select',
     label: 'Role',
   },
   {

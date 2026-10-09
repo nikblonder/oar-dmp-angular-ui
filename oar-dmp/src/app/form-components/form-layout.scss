@@ -160,10 +160,22 @@ label {
 
 // Boxes containing a 4-column .field-grid (e.g. Contributor + Primary
 // Contact side by side) are wider than the default 430px cap — let the
-// border size to content instead of clipping it.
+// border size to its container instead of being clipped at 430px.
+//
+// Switched from `width: fit-content` to `width: 100%`: fit-content only
+// sizes the box to its CONTENT's natural width, which on a wide screen was
+// narrower than the available container space (since the instrument inputs
+// themselves are capped at a max-width) — so the box stopped stretching to
+// fill col-80 on large screens, even though it correctly avoided overflow
+// on narrow ones. width: 100% + max-width: 100% lets the box always fill
+// whatever space its container actually provides, growing on wide screens
+// and shrinking on narrow ones, while the input fields inside it (field-
+// grid--instrument's max-width: 500px/800px) independently cap their own
+// width so they don't look absurdly wide inside a very wide box.
 .bordered-field-group:has(.field-grid) {
-  max-width: none;
-  width: fit-content;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .field-grid {
@@ -178,12 +190,7 @@ label {
   // contributor box's short labels (Contributor, ORCID, Role) plus a
   // mat-form-field-constrained Contributor field. Other uses override this
   // via a modifier class (see --plain, --instrument below).
-  // 3rd column (Primary Contact's label) widened from 110px to 140px: its
-  // label text plus the new info icon no longer fit in 110px, and since
-  // .nist-contrib-label uses white-space: nowrap, the overflow doesn't
-  // reflow — it just visually overlaps the next grid column. Columns 1
-  // (Contributor) and 4 (Primary Contact's field) are unchanged.
-  grid-template-columns: 110px 320px 140px 60px;
+  grid-template-columns: 110px 320px 110px 140px;
   column-gap: 12px;
   // Align to the TOP of each cell instead of center. mat-form-field carries
   // an invisible hint/subscript area below its input (reserved for error
@@ -265,7 +272,7 @@ label {
 // --- Modifier: --instrument ---
 // For Technical Requirements' Instrument Name/Description fields: both
 // labels are long ("Instrument Name or Barcode or Property Number:",
-// "Instrument Description or URL Landing Page:"), and even a wide label
+// "Instrument Description / URL Landing Page:"), and even a wide label
 // column looked cramped in practice. Stack label above input instead of
 // side-by-side columns — overrides field-grid-row's grid entirely with a
 // single-column block layout.
@@ -296,54 +303,32 @@ label {
 // rule override this one regardless of width value. !important sidesteps
 // that ordering dependency entirely.
 .field-grid--instrument .field-grid-field input[type="text"].instrument-field--name {
-  width: 500px !important;
-  max-width: none !important;
+  width: 100%;
+  max-width: 500px !important;
 }
 
 .field-grid--instrument .field-grid-field input[type="text"].instrument-field--description {
-  width: 800px !important;
-  max-width: none !important;
-}
-
-// =============================
-// Inline edit-mode mat-form-field (table cells, .form-input)
-// =============================
-// When a Contributors/Instruments table row enters edit mode, its plain text
-// cells swap to a mat-form-field (class "form-input"). Material's default
-// "fill" appearance reserves vertical space for a floating label plus a
-// hint/subscript line (for error messages) that this inline table-cell
-// usage never needs — it was making edit-mode rows render taller than
-// normal rows, with input boxes that look oversized/misaligned relative to
-// the table's compact row height (52px, per --mat-table-row-item-container-
-// height).
-//
-// ::ng-deep pierces mat-form-field's view encapsulation; scoped to
-// .form-input so only these table-cell edit fields are affected, not every
-// mat-form-field elsewhere in the app (e.g. the NIST Contributor/
-// Organization autocomplete fields, which keep their normal sizing).
-.form-input {
-  padding-right: 2px;
   width: 100%;
+  max-width: 800px !important;
 }
 
-::ng-deep .form-input .mat-mdc-text-field-wrapper {
-  padding: 0 2px !important;
-  height: 46px !important; // fits comfortably within the table's 52px row height
-}
 
-::ng-deep .form-input .mat-mdc-form-field-infix {
-  padding-top: 2px !important;
-  padding-bottom: 2px !important;
-  min-height: 0 !important;
-}
-
-::ng-deep .form-input .mat-mdc-form-field-subscript-wrapper {
-  // This reserves space below the input for hint/error text, which these
-  // inline edit fields never use — display: none removes that reserved
-  // space entirely rather than just hiding its (empty) content.
-  display: none !important;
-}
-
-::ng-deep .form-input input.mat-mdc-input-element {
-  font-size: 14px; // match the table's own row text size for visual consistency
+// =============================
+// Role dropdown (edit mode) — visually match the .form-input mat-form-field
+// cells it sits beside in the Contributors table
+// =============================
+// This is a plain native <select>, not a mat-form-field, so it needs its
+// own styling to match the compacted mat-form-field cells above (36px
+// height, 14px font, small horizontal padding) rather than Material's
+// default select/dropdown chrome.
+.contribTbl select {
+  width: 100%;
+  height: 36px;
+  font-size: 14px;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  padding: 0 4px;
+  border: 1px solid rgba(0, 0, 0, 0.42); // approximates mat-form-field fill's default underline/border tone
+  border-radius: 4px;
+  background-color: whitesmoke; // matches mat-form-field fill's default container color
+  box-sizing: border-box;
 }
