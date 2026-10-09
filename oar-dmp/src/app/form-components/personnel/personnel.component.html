@@ -83,20 +83,17 @@
                 <label for="primCntcN">No</label>
               </div>
             </div> -->
-
-            <div class="field-grid">
-
-              <!-- Contributor + Primary Contact share a row -->
+            
+            <div class="field-grid field-grid--plain">
               <div class="field-grid-row">
                 <div class="field-grid-label cell-top">
-                  Contributor
+                  Contributor<span class="requiredField" >*</span>
                   <span class="inline-info-icon-wrap" matTooltip="Search for NIST staff by first or last name, then select the person from the search suggestion list." matTooltipPosition="above">
                     <mat-icon class="header-inline-info-icon">info</mat-icon>
                   </span>
                 </div>
                 <div class="field-grid-field">
-                  <mat-form-field class="example-full-width" appearance="fill" >
-                    <!-- <mat-label>NIST Contributor</mat-label> -->
+                  <mat-form-field class="example-full-width" appearance="fill">
                     <input type="text"
                           placeholder="Type to search ..."
                           aria-label="Nist Contributor"
@@ -114,7 +111,9 @@
                     </mat-autocomplete>
                   </mat-form-field>
                 </div>
+              </div>
 
+              <div class="field-grid-row">
                 <div class="field-grid-label">
                   Primary Contact
                   <span class="inline-info-icon-wrap" matTooltip="At least one NIST contributor must be marked as a primary contact. A primary contact's OU is automatically added as a responsible OU for this DMP. A DMP record can have more than one primary contact." matTooltipPosition="above">
@@ -131,7 +130,6 @@
                     <option *ngFor="let option of primaryContactOptions" [value]="option.id" >
                         {{option.value}}
                     </option>
-
                   </select>
                 </div>
               </div>
@@ -162,7 +160,6 @@
                     <option [value]="role.id" *ngFor="let role of contributorRoles">
                         {{role.value}}
                     </option>
-
                   </select>
                 </div>
               </div>
